@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Zap, Shield, Target, User, Play } from "lucide-react";
+import { CheckCircle, Zap, Shield, Target, User, Play, Calendar, ArrowLeft, ArrowRight } from "lucide-react";
+import { workoutProgram, getCurrentWeekWorkouts, getWorkoutById, type Workout } from "@/data/workouts";
 
 const Index = () => {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -159,17 +160,45 @@ const LandingPage = ({ onSignIn }: { onSignIn: () => void }) => {
 
 const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
+  const [currentWeek, setCurrentWeek] = useState(1);
 
   const renderPage = () => {
     switch (currentPage) {
       case 'workout':
-        return <WorkoutPage onBack={() => setCurrentPage('dashboard')} />;
+        return (
+          <WorkoutPage 
+            workoutId={selectedWorkoutId} 
+            onBack={() => setCurrentPage('dashboard')} 
+          />
+        );
       case 'exercises':
         return <ExerciseLibrary onBack={() => setCurrentPage('dashboard')} />;
       case 'profile':
         return <ProfilePage onBack={() => setCurrentPage('dashboard')} />;
+      case 'week-view':
+        return (
+          <WeekView 
+            week={currentWeek}
+            onSelectWorkout={(workoutId) => {
+              setSelectedWorkoutId(workoutId);
+              setCurrentPage('workout');
+            }}
+            onBack={() => setCurrentPage('dashboard')} 
+          />
+        );
       default:
-        return <DashboardHome onNavigate={setCurrentPage} />;
+        return (
+          <DashboardHome 
+            currentWeek={currentWeek}
+            onNavigate={setCurrentPage} 
+            onWeekChange={setCurrentWeek}
+            onSelectWorkout={(workoutId) => {
+              setSelectedWorkoutId(workoutId);
+              setCurrentPage('workout');
+            }}
+          />
+        );
     }
   };
 
@@ -180,7 +209,20 @@ const Dashboard = () => {
   );
 };
 
-const DashboardHome = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
+const DashboardHome = ({ 
+  currentWeek, 
+  onNavigate, 
+  onWeekChange,
+  onSelectWorkout 
+}: { 
+  currentWeek: number;
+  onNavigate: (page: string) => void;
+  onWeekChange: (week: number) => void;
+  onSelectWorkout: (workoutId: string) => void;
+}) => {
+  const currentWeekWorkouts = getCurrentWeekWorkouts(currentWeek);
+  const nextWorkout = currentWeekWorkouts[0]; // Próximo treino sugerido
+
   return (
     <div className="p-6">
       <div className="max-w-md mx-auto">
@@ -190,23 +232,64 @@ const DashboardHome = ({ onNavigate }: { onNavigate: (page: string) => void }) =
           <p className="text-muted-foreground">Pronto para o treino de hoje?</p>
         </header>
 
-        {/* Main CTA */}
-        <Card className="bg-primary/10 border-primary mb-8">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-                <Zap className="text-white" size={24} />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg">Semana 1 - Treino A</h3>
-                <p className="text-muted-foreground">Força Base</p>
+        {/* Week Selector */}
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold">Semana de Treino</h3>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onWeekChange(Math.max(1, currentWeek - 1))}
+                  disabled={currentWeek === 1}
+                >
+                  <ArrowLeft size={16} />
+                </Button>
+                <span className="font-bold text-primary">Semana {currentWeek}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onWeekChange(Math.min(4, currentWeek + 1))}
+                  disabled={currentWeek === 4}
+                >
+                  <ArrowRight size={16} />
+                </Button>
               </div>
             </div>
-            <Button onClick={() => onNavigate('workout')} className="primary-button w-full">
-              Acessar Meu Treino
+            <Button 
+              onClick={() => onNavigate('week-view')} 
+              variant="outline" 
+              className="w-full"
+            >
+              <Calendar className="mr-2" size={16} />
+              Ver Todos os Treinos da Semana
             </Button>
           </CardContent>
         </Card>
+
+        {/* Main CTA */}
+        {nextWorkout && (
+          <Card className="bg-primary/10 border-primary mb-8">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+                  <Zap className="text-white" size={24} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">{nextWorkout.title}</h3>
+                  <p className="text-muted-foreground">{nextWorkout.subtitle}</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => onSelectWorkout(nextWorkout.id)} 
+                className="primary-button w-full"
+              >
+                Começar Treino
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Quick Access */}
         <div className="space-y-4">
@@ -235,17 +318,88 @@ const DashboardHome = ({ onNavigate }: { onNavigate: (page: string) => void }) =
   );
 };
 
-const WorkoutPage = ({ onBack }: { onBack: () => void }) => {
+const WeekView = ({ 
+  week, 
+  onSelectWorkout, 
+  onBack 
+}: { 
+  week: number;
+  onSelectWorkout: (workoutId: string) => void;
+  onBack: () => void;
+}) => {
+  const weekWorkouts = getCurrentWeekWorkouts(week);
+
+  return (
+    <div className="p-6">
+      <div className="max-w-md mx-auto">
+        {/* Header */}
+        <header className="mb-6">
+          <Button variant="ghost" onClick={onBack} className="mb-4 p-0">
+            ← Voltar
+          </Button>
+          <h1 className="text-2xl font-bold mb-2">Semana {week}</h1>
+          <p className="text-muted-foreground">
+            {week === 1 && "Base - Construindo os fundamentos"}
+            {week === 2 && "Progressão - Aumentando a intensidade"}
+            {week === 3 && "Intensificação - Desafiando os limites"}
+            {week === 4 && "Pico - Performance máxima"}
+          </p>
+        </header>
+
+        {/* Workout List */}
+        <div className="space-y-4">
+          {weekWorkouts.map((workout) => (
+            <Card key={workout.id} className="exercise-card">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-primary/20 rounded-lg flex items-center justify-center">
+                    <span className="text-primary font-bold text-xl">{workout.type}</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold mb-1">Treino {workout.type}</h3>
+                    <p className="text-muted-foreground text-sm mb-2">{workout.subtitle}</p>
+                    <p className="text-xs text-muted-foreground">{workout.exercises.length} exercícios</p>
+                  </div>
+                  <Button onClick={() => onSelectWorkout(workout.id)} className="mobile-tap-target">
+                    <Play size={16} />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const WorkoutPage = ({ workoutId, onBack }: { workoutId: string | null; onBack: () => void }) => {
   const [completedExercises, setCompletedExercises] = useState<number[]>([]);
   const [weights, setWeights] = useState<{[key: number]: string}>({});
 
-  const exercises = [
-    { id: 1, name: "Agachamento Livre", sets: "4x 10-12 reps", note: "Focar na descida lenta" },
-    { id: 2, name: "Supino Reto", sets: "4x 8-10 reps", note: "Controlar a descida" },
-    { id: 3, name: "Puxada Alta", sets: "4x 10-12 reps", note: "Puxar até o peito" },
-    { id: 4, name: "Desenvolvimento", sets: "3x 12-15 reps", note: "Amplitude completa" },
-    { id: 5, name: "Remada Curvada", sets: "4x 10-12 reps", note: "Apertar as escápulas" },
-  ];
+  if (!workoutId) {
+    return (
+      <div className="p-6">
+        <div className="max-w-md mx-auto text-center">
+          <p className="text-muted-foreground">Treino não encontrado</p>
+          <Button onClick={onBack} className="mt-4">Voltar</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const workout = getWorkoutById(workoutId);
+  
+  if (!workout) {
+    return (
+      <div className="p-6">
+        <div className="max-w-md mx-auto text-center">
+          <p className="text-muted-foreground">Treino não encontrado</p>
+          <Button onClick={onBack} className="mt-4">Voltar</Button>
+        </div>
+      </div>
+    );
+  }
 
   const toggleComplete = (id: number) => {
     setCompletedExercises(prev => 
@@ -267,13 +421,13 @@ const WorkoutPage = ({ onBack }: { onBack: () => void }) => {
           <Button variant="ghost" onClick={onBack} className="mb-4 p-0">
             ← Voltar
           </Button>
-          <h1 className="text-2xl font-bold mb-2">Semana 1 - Treino A</h1>
-          <p className="text-primary font-medium">Força Base</p>
+          <h1 className="text-2xl font-bold mb-2">{workout.title}</h1>
+          <p className="text-primary font-medium">{workout.subtitle}</p>
         </header>
 
         {/* Exercise List */}
         <div className="space-y-4">
-          {exercises.map((exercise) => (
+          {workout.exercises.map((exercise) => (
             <Card key={exercise.id} className="exercise-card">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
@@ -319,12 +473,12 @@ const WorkoutPage = ({ onBack }: { onBack: () => void }) => {
         {/* Progress */}
         <div className="mt-8 p-4 bg-card rounded-lg">
           <p className="text-center text-muted-foreground">
-            Progresso: {completedExercises.length}/{exercises.length} exercícios
+            Progresso: {completedExercises.length}/{workout.exercises.length} exercícios
           </p>
           <div className="w-full bg-secondary rounded-full h-2 mt-2">
             <div 
               className="bg-primary h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(completedExercises.length / exercises.length) * 100}%` }}
+              style={{ width: `${(completedExercises.length / workout.exercises.length) * 100}%` }}
             />
           </div>
         </div>
