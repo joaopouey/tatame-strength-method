@@ -2,8 +2,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Zap, Shield, Target, User, Play, Calendar, ArrowLeft, ArrowRight } from "lucide-react";
-import { workoutProgram, getCurrentWeekWorkouts, getWorkoutById, type Workout } from "@/data/workouts";
+import { CheckCircle, Zap, Shield, Target, User, Play, Calendar, ArrowLeft, ArrowRight, Info } from "lucide-react";
+import { workoutProgram, getCurrentWeekWorkouts, getWorkoutById, getWorkoutsByFrequency, type Workout } from "@/data/workouts";
 
 const Index = () => {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -162,6 +162,7 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
   const [currentWeek, setCurrentWeek] = useState(1);
+  const [weeklyFrequency, setWeeklyFrequency] = useState<2 | 3 | 4>(3); // Nova state para frequência
 
   const renderPage = () => {
     switch (currentPage) {
@@ -180,6 +181,7 @@ const Dashboard = () => {
         return (
           <WeekView 
             week={currentWeek}
+            frequency={weeklyFrequency}
             onSelectWorkout={(workoutId) => {
               setSelectedWorkoutId(workoutId);
               setCurrentPage('workout');
@@ -187,10 +189,19 @@ const Dashboard = () => {
             onBack={() => setCurrentPage('dashboard')} 
           />
         );
+      case 'frequency-setup':
+        return (
+          <FrequencySetup 
+            currentFrequency={weeklyFrequency}
+            onFrequencyChange={setWeeklyFrequency}
+            onBack={() => setCurrentPage('dashboard')} 
+          />
+        );
       default:
         return (
           <DashboardHome 
             currentWeek={currentWeek}
+            weeklyFrequency={weeklyFrequency}
             onNavigate={setCurrentPage} 
             onWeekChange={setCurrentWeek}
             onSelectWorkout={(workoutId) => {
@@ -209,19 +220,107 @@ const Dashboard = () => {
   );
 };
 
+const FrequencySetup = ({ 
+  currentFrequency, 
+  onFrequencyChange, 
+  onBack 
+}: { 
+  currentFrequency: 2 | 3 | 4;
+  onFrequencyChange: (frequency: 2 | 3 | 4) => void;
+  onBack: () => void;
+}) => {
+  const frequencyOptions = [
+    {
+      days: 2 as const,
+      title: '2 Dias por Semana',
+      description: 'Treinos A e B - Ideal para iniciantes ou quem tem pouco tempo',
+      workouts: 'Treino A (Pernas) + Treino B (Superiores)'
+    },
+    {
+      days: 3 as const,
+      title: '3 Dias por Semana',
+      description: 'Treinos A, B e C - Equilibrio perfeito para a maioria',
+      workouts: 'Treino A (Pernas) + Treino B (Superiores) + Treino C (Funcional BJJ)'
+    },
+    {
+      days: 4 as const,
+      title: '4 Dias por Semana',
+      description: 'A, B, C e A novamente - Para quem quer máxima evolução',
+      workouts: 'Todos os treinos + repetição do Treino A'
+    }
+  ];
+
+  return (
+    <div className="p-6">
+      <div className="max-w-md mx-auto">
+        <header className="mb-6">
+          <Button variant="ghost" onClick={onBack} className="mb-4 p-0">
+            ← Voltar
+          </Button>
+          <h1 className="text-2xl font-bold mb-2">Frequência de Treino</h1>
+          <p className="text-muted-foreground">
+            Escolha quantos dias por semana você vai treinar. Você pode alterar isso a qualquer momento.
+          </p>
+        </header>
+
+        <div className="space-y-4">
+          {frequencyOptions.map((option) => (
+            <Card 
+              key={option.days}
+              className={`cursor-pointer transition-all ${
+                currentFrequency === option.days 
+                  ? 'border-primary bg-primary/10' 
+                  : 'hover:border-primary/50'
+              }`}
+              onClick={() => onFrequencyChange(option.days)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className={`w-6 h-6 rounded-full border-2 mt-1 flex items-center justify-center ${
+                    currentFrequency === option.days
+                      ? 'border-primary bg-primary'
+                      : 'border-muted-foreground'
+                  }`}>
+                    {currentFrequency === option.days && (
+                      <CheckCircle className="text-white" size={16} />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold mb-1">{option.title}</h3>
+                    <p className="text-muted-foreground text-sm mb-2">{option.description}</p>
+                    <p className="text-primary text-xs font-medium">{option.workouts}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="mt-8">
+          <Button onClick={onBack} className="primary-button w-full">
+            Confirmar Frequência
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DashboardHome = ({ 
   currentWeek, 
+  weeklyFrequency,
   onNavigate, 
   onWeekChange,
   onSelectWorkout 
 }: { 
   currentWeek: number;
+  weeklyFrequency: 2 | 3 | 4;
   onNavigate: (page: string) => void;
   onWeekChange: (week: number) => void;
   onSelectWorkout: (workoutId: string) => void;
 }) => {
-  const currentWeekWorkouts = getCurrentWeekWorkouts(currentWeek);
-  const nextWorkout = currentWeekWorkouts[0]; // Próximo treino sugerido
+  const currentWeekWorkouts = getWorkoutsByFrequency(currentWeek, weeklyFrequency);
+  const nextWorkout = currentWeekWorkouts[0];
 
   return (
     <div className="p-6">
@@ -231,6 +330,28 @@ const DashboardHome = ({
           <h1 className="text-2xl font-bold mb-2">Olá, Bruno!</h1>
           <p className="text-muted-foreground">Pronto para o treino de hoje?</p>
         </header>
+
+        {/* Frequency Display */}
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold">Sua Rotina</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onNavigate('frequency-setup')}
+              >
+                Alterar
+              </Button>
+            </div>
+            <p className="text-primary font-medium">{weeklyFrequency} dias por semana</p>
+            <p className="text-muted-foreground text-sm">
+              {weeklyFrequency === 2 && "Treinos A e B"}
+              {weeklyFrequency === 3 && "Treinos A, B e C"}
+              {weeklyFrequency === 4 && "Treinos A, B, C e A"}
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Week Selector */}
         <Card className="mb-6">
@@ -274,7 +395,7 @@ const DashboardHome = ({
             <CardContent className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-                  <Zap className="text-white" size={24} />
+                  <span className="text-white font-bold">Dia {nextWorkout.dayNumber}</span>
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg">{nextWorkout.title}</h3>
@@ -294,6 +415,15 @@ const DashboardHome = ({
         {/* Quick Access */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Acesso Rápido</h2>
+          
+          <Button 
+            variant="outline" 
+            onClick={() => onNavigate('frequency-setup')}
+            className="secondary-button w-full justify-start"
+          >
+            <Calendar className="mr-3" size={20} />
+            Alterar Frequência de Treino
+          </Button>
           
           <Button 
             variant="outline" 
@@ -320,14 +450,16 @@ const DashboardHome = ({
 
 const WeekView = ({ 
   week, 
+  frequency,
   onSelectWorkout, 
   onBack 
 }: { 
   week: number;
+  frequency: 2 | 3 | 4;
   onSelectWorkout: (workoutId: string) => void;
   onBack: () => void;
 }) => {
-  const weekWorkouts = getCurrentWeekWorkouts(week);
+  const weekWorkouts = getWorkoutsByFrequency(week, frequency);
 
   return (
     <div className="p-6">
@@ -344,16 +476,20 @@ const WeekView = ({
             {week === 3 && "Intensificação - Desafiando os limites"}
             {week === 4 && "Pico - Performance máxima"}
           </p>
+          <p className="text-primary text-sm mt-2">{frequency} dias de treino</p>
         </header>
 
         {/* Workout List */}
         <div className="space-y-4">
-          {weekWorkouts.map((workout) => (
-            <Card key={workout.id} className="exercise-card">
+          {weekWorkouts.map((workout, index) => (
+            <Card key={`${workout.id}-${index}`} className="exercise-card">
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 bg-primary/20 rounded-lg flex items-center justify-center">
-                    <span className="text-primary font-bold text-xl">{workout.type}</span>
+                    <div className="text-center">
+                      <div className="text-primary font-bold text-lg">Dia {workout.dayNumber}</div>
+                      <div className="text-primary text-xs">{workout.type}</div>
+                    </div>
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold mb-1">Treino {workout.type}</h3>
@@ -376,6 +512,7 @@ const WeekView = ({
 const WorkoutPage = ({ workoutId, onBack }: { workoutId: string | null; onBack: () => void }) => {
   const [completedExercises, setCompletedExercises] = useState<number[]>([]);
   const [weights, setWeights] = useState<{[key: number]: string}>({});
+  const [showLoadInfo, setShowLoadInfo] = useState<{[key: number]: boolean}>({});
 
   if (!workoutId) {
     return (
@@ -413,6 +550,10 @@ const WorkoutPage = ({ workoutId, onBack }: { workoutId: string | null; onBack: 
     setWeights(prev => ({ ...prev, [id]: weight }));
   };
 
+  const toggleLoadInfo = (id: number) => {
+    setShowLoadInfo(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   return (
     <div className="p-6">
       <div className="max-w-md mx-auto">
@@ -421,9 +562,28 @@ const WorkoutPage = ({ workoutId, onBack }: { workoutId: string | null; onBack: 
           <Button variant="ghost" onClick={onBack} className="mb-4 p-0">
             ← Voltar
           </Button>
-          <h1 className="text-2xl font-bold mb-2">{workout.title}</h1>
-          <p className="text-primary font-medium">{workout.subtitle}</p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
+              <span className="text-primary font-bold">Dia {workout.dayNumber}</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">{workout.title}</h1>
+              <p className="text-primary font-medium text-sm">{workout.subtitle}</p>
+            </div>
+          </div>
         </header>
+
+        {/* RPE Explanation */}
+        <Card className="mb-6 bg-blue-50 border-blue-200">
+          <CardContent className="p-4">
+            <h3 className="font-semibold text-blue-900 mb-2">Escala RPE (Percepção de Esforço)</h3>
+            <div className="text-blue-800 text-sm space-y-1">
+              <p><strong>RPE 6-7:</strong> Moderado a difícil (2-4 reps na reserva)</p>
+              <p><strong>RPE 7-8:</strong> Difícil (1-3 reps na reserva)</p>
+              <p><strong>RPE 8-9:</strong> Muito difícil (0-2 reps na reserva)</p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Exercise List */}
         <div className="space-y-4">
@@ -452,14 +612,36 @@ const WorkoutPage = ({ workoutId, onBack }: { workoutId: string | null; onBack: 
                       <p className="text-muted-foreground text-sm mb-3">{exercise.note}</p>
                     )}
                     
+                    {/* Load Guidance */}
+                    <div className="mb-3">
+                      <button 
+                        onClick={() => toggleLoadInfo(exercise.id)}
+                        className="flex items-center gap-2 text-blue-600 text-sm hover:text-blue-800"
+                      >
+                        <Info size={16} />
+                        Como escolher a carga?
+                      </button>
+                      
+                      {showLoadInfo[exercise.id] && (
+                        <div className="mt-2 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                          <p className="text-blue-900 text-sm mb-2">
+                            <strong>Carga:</strong> {exercise.loadGuidance}
+                          </p>
+                          <p className="text-blue-900 text-sm">
+                            <strong>Esforço:</strong> {exercise.rpeGuidance}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    
                     <div className="flex items-center gap-2">
-                      <label className="text-sm text-muted-foreground">Carga:</label>
+                      <label className="text-sm text-muted-foreground">Carga usada:</label>
                       <input
                         type="text"
                         value={weights[exercise.id] || ''}
                         onChange={(e) => updateWeight(exercise.id, e.target.value)}
-                        placeholder="kg"
-                        className="bg-input border border-border rounded px-2 py-1 text-sm w-16 mobile-tap-target"
+                        placeholder="ex: 60"
+                        className="bg-input border border-border rounded px-2 py-1 text-sm w-20 mobile-tap-target"
                       />
                       <span className="text-sm text-muted-foreground">kg</span>
                     </div>
