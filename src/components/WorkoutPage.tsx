@@ -13,6 +13,7 @@ interface WorkoutPageProps {
 
 interface WorkoutHistory {
   exerciseId: number;
+  exerciseName: string;
   weight: string;
   rpe: string;
   date: string;
@@ -67,17 +68,18 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
     setWeights(prev => ({ ...prev, [id]: weight }));
   };
 
-  const getLastWeight = (exerciseId: number) => {
+  const getLastExerciseData = (exerciseId: number, exerciseName: string) => {
     const lastEntry = workoutHistory
-      .filter(h => h.exerciseId === exerciseId)
+      .filter(h => h.exerciseId === exerciseId || h.exerciseName === exerciseName)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-    return lastEntry?.weight || '';
+    return lastEntry;
   };
 
   const completeWorkout = () => {
     // Salvar histórico de cargas
     const newHistory = workout.exercises.map(exercise => ({
       exerciseId: exercise.id,
+      exerciseName: exercise.name,
       weight: weights[exercise.id] || '',
       rpe: exercise.rpeGuidance,
       date: new Date().toISOString()
@@ -139,25 +141,11 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
         {/* Exercise List */}
         <div className="space-y-4">
           {workout.exercises.map((exercise) => {
-            const lastWeight = getLastWeight(exercise.id);
+            const lastExerciseData = getLastExerciseData(exercise.id, exercise.name);
             return (
               <Card key={exercise.id} className="exercise-card">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    <button
-                      onClick={() => toggleComplete(exercise.id)}
-                      className="mt-1 mobile-tap-target"
-                    >
-                      <CheckCircle 
-                        className={`${
-                          completedExercises.includes(exercise.id) 
-                            ? 'text-primary' 
-                            : 'text-muted-foreground'
-                        } transition-colors`}
-                        size={24}
-                      />
-                    </button>
-                    
                     <div className="flex-1">
                       <h3 className="font-semibold mb-1">{exercise.name}</h3>
                       <p className="text-primary text-sm font-medium mb-2">{exercise.sets}</p>
@@ -166,31 +154,48 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
                       )}
                       
                       {/* Load and RPE Guidance - Always Visible */}
-                      <div className="mb-3 p-3 bg-secondary/50 rounded-lg border border-secondary">
-                        <p className="text-secondary-foreground text-sm mb-1">
+                      <div className="mb-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <p className="text-slate-700 text-sm mb-1">
                           <strong>Carga:</strong> {exercise.loadGuidance}
                         </p>
-                        <p className="text-secondary-foreground text-sm">
+                        <p className="text-slate-700 text-sm">
                           <strong>Ajuste da Carga:</strong> {exercise.rpeGuidance}
                         </p>
                       </div>
                       
-                      <div className="flex items-center gap-2">
-                        <label className="text-sm text-muted-foreground">Carga usada:</label>
-                        <input
-                          type="text"
-                          value={weights[exercise.id] || ''}
-                          onChange={(e) => updateWeight(exercise.id, e.target.value)}
-                          placeholder={lastWeight || "ex: 60"}
-                          className="bg-input border border-border rounded px-2 py-1 text-sm w-20 mobile-tap-target"
-                        />
-                        <span className="text-sm text-muted-foreground">kg</span>
-                        {lastWeight && (
-                          <span className="text-xs text-muted-foreground ml-2">
-                            Última: {lastWeight}kg
-                          </span>
-                        )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <label className="text-sm text-muted-foreground">Carga usada:</label>
+                          <input
+                            type="text"
+                            value={weights[exercise.id] || ''}
+                            onChange={(e) => updateWeight(exercise.id, e.target.value)}
+                            placeholder="ex: 60"
+                            className="bg-input border border-border rounded px-2 py-1 text-sm w-20 mobile-tap-target"
+                          />
+                          <span className="text-sm text-muted-foreground">kg</span>
+                        </div>
+                        
+                        <button
+                          onClick={() => toggleComplete(exercise.id)}
+                          className="mobile-tap-target"
+                        >
+                          <CheckCircle 
+                            className={`${
+                              completedExercises.includes(exercise.id) 
+                                ? 'text-primary' 
+                                : 'text-muted-foreground'
+                            } transition-colors`}
+                            size={24}
+                          />
+                        </button>
                       </div>
+                      
+                      {lastExerciseData && (
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          <span>Última vez: {lastExerciseData.weight}kg | RPE: {lastExerciseData.rpe}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
