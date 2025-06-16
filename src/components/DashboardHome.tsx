@@ -1,7 +1,8 @@
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, ArrowLeft, ArrowRight, Play, User } from "lucide-react";
+import { Calendar, ArrowLeft, ArrowRight, Play, User, Check } from "lucide-react";
 import { getWorkoutsByFrequency } from "@/data/workouts";
 
 interface DashboardHomeProps {
@@ -12,6 +13,13 @@ interface DashboardHomeProps {
   onSelectWorkout: (workoutId: string) => void;
 }
 
+interface CompletedWorkout {
+  workoutId: string;
+  date: string;
+  week: number;
+  type: string;
+}
+
 export const DashboardHome = ({ 
   currentWeek, 
   weeklyFrequency,
@@ -19,8 +27,28 @@ export const DashboardHome = ({
   onWeekChange,
   onSelectWorkout 
 }: DashboardHomeProps) => {
+  const [completedWorkouts, setCompletedWorkouts] = useState<CompletedWorkout[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('completedWorkouts');
+    if (saved) {
+      setCompletedWorkouts(JSON.parse(saved));
+    }
+  }, []);
+
   const currentWeekWorkouts = getWorkoutsByFrequency(currentWeek, weeklyFrequency);
-  const nextWorkout = currentWeekWorkouts[0];
+  
+  // Encontrar próximo treino não concluído
+  const getNextWorkout = () => {
+    const weekCompleted = completedWorkouts.filter(cw => cw.week === currentWeek);
+    const nextWorkout = currentWeekWorkouts.find(workout => 
+      !weekCompleted.some(cw => cw.workoutId === workout.id)
+    );
+    return nextWorkout || currentWeekWorkouts[0];
+  };
+
+  const nextWorkout = getNextWorkout();
+  const weekProgress = completedWorkouts.filter(cw => cw.week === currentWeek).length;
 
   return (
     <div className="p-6">
@@ -30,6 +58,27 @@ export const DashboardHome = ({
           <h1 className="text-2xl font-bold mb-2">Olá, Bruno!</h1>
           <p className="text-muted-foreground">Pronto para o treino de hoje?</p>
         </header>
+
+        {/* Week Progress */}
+        {weekProgress > 0 && (
+          <Card className="mb-6 bg-primary/5 border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Check className="text-primary" size={20} />
+                <h3 className="font-semibold text-primary">Progresso da Semana {currentWeek}</h3>
+              </div>
+              <p className="text-primary/80 text-sm">
+                {weekProgress}/{currentWeekWorkouts.length} treinos concluídos
+              </p>
+              <div className="w-full bg-primary/20 rounded-full h-2 mt-2">
+                <div 
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(weekProgress / currentWeekWorkouts.length) * 100}%` }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Frequency Display */}
         <Card className="mb-6">
@@ -100,13 +149,18 @@ export const DashboardHome = ({
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg">{nextWorkout.title}</h3>
                   <p className="text-muted-foreground">{nextWorkout.subtitle}</p>
+                  {weekProgress >= currentWeekWorkouts.length ? (
+                    <p className="text-primary text-sm mt-1">✓ Semana concluída!</p>
+                  ) : (
+                    <p className="text-primary text-sm mt-1">Próximo treino</p>
+                  )}
                 </div>
               </div>
               <Button 
                 onClick={() => onSelectWorkout(nextWorkout.id)} 
                 className="primary-button w-full"
               >
-                Começar Treino
+                {weekProgress >= currentWeekWorkouts.length ? 'Refazer Treino' : 'Começar Treino'}
               </Button>
             </CardContent>
           </Card>

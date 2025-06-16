@@ -13,13 +13,19 @@ export const Dashboard = () => {
   const [currentWeek, setCurrentWeek] = useState(1);
   const [weeklyFrequency, setWeeklyFrequency] = useState<2 | 3 | 4>(3);
 
+  const handleWorkoutCompleted = (workoutId: string) => {
+    // Força atualização da tela inicial
+    setCurrentPage('dashboard');
+  };
+
   const renderPage = () => {
     switch (currentPage) {
       case 'workout':
         return (
           <WorkoutPage 
             workoutId={selectedWorkoutId} 
-            onBack={() => setCurrentPage('dashboard')} 
+            onBack={() => setCurrentPage('dashboard')}
+            onWorkoutCompleted={handleWorkoutCompleted}
           />
         );
       case 'exercises':
