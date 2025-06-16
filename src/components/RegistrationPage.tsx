@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -87,25 +86,23 @@ export const RegistrationPage = ({ onComplete }: RegistrationPageProps) => {
       }
 
       if (data.user) {
-        // Save anamnesis data
+        // Save anamnesis data with correct field mapping
         const { error: anamnesisError } = await supabase
           .from('anamnesis')
           .insert([
             {
               user_id: data.user.id,
-              age: parseInt(age),
-              weight: parseFloat(weight),
-              height: parseFloat(height),
-              activity_level: activityLevel,
-              jiujitsu_experience: jiujitsuExperience,
-              training_goals: trainingGoals,
-              available_time: availableTime[0],
-              preferred_days: preferredDays,
-              injuries,
-              limitations,
-              medical_conditions: medicalConditions,
-              supplements,
-              additional_info: additionalInfo
+              age: parseInt(age) || null,
+              weight: parseFloat(weight) || null,
+              height: parseFloat(height) || null,
+              bjj_experience: jiujitsuExperience,
+              training_goals: trainingGoals.join(', '), // Convert array to string
+              training_frequency: availableTime[0],
+              current_injuries: injuries,
+              past_injuries: limitations,
+              health_conditions: medicalConditions,
+              medications: supplements,
+              additional_notes: additionalInfo
             }
           ]);
 
