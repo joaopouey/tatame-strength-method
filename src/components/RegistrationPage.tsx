@@ -1,15 +1,14 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Slider } from "@/components/ui/slider";
-import { ArrowLeft, User, Lock, FileText, Target, Activity, Heart, Calendar, AlertTriangle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AccountStep } from "./registration/AccountStep";
+import { BasicInfoStep } from "./registration/BasicInfoStep";
+import { GoalsStep } from "./registration/GoalsStep";
+import { HealthStep } from "./registration/HealthStep";
+import { ProgressIndicator } from "./registration/ProgressIndicator";
 
 interface RegistrationPageProps {
   onComplete: () => void;
@@ -141,266 +140,66 @@ export const RegistrationPage = ({ onComplete }: RegistrationPageProps) => {
     setCurrentStep(currentStep - 1);
   };
 
-  const renderStep1 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <User className="text-primary" size={24} />
-          Criar sua Conta
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label htmlFor="fullName">Nome Completo</Label>
-          <Input
-            id="fullName"
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Seu nome completo"
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <AccountStep
+            fullName={fullName}
+            setFullName={setFullName}
+            email={email}
+            setEmail={setEmail}
+            password={password}
+            setPassword={setPassword}
+            confirmPassword={confirmPassword}
+            setConfirmPassword={setConfirmPassword}
           />
-        </div>
-        <div>
-          <Label htmlFor="email">E-mail</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="seu@email.com"
+        );
+      case 2:
+        return (
+          <BasicInfoStep
+            age={age}
+            setAge={setAge}
+            weight={weight}
+            setWeight={setWeight}
+            height={height}
+            setHeight={setHeight}
+            activityLevel={activityLevel}
+            setActivityLevel={setActivityLevel}
+            jiujitsuExperience={jiujitsuExperience}
+            setJiujitsuExperience={setJiujitsuExperience}
           />
-        </div>
-        <div>
-          <Label htmlFor="password">Senha</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mínimo 6 caracteres"
+        );
+      case 3:
+        return (
+          <GoalsStep
+            trainingGoals={trainingGoals}
+            handleGoalChange={handleGoalChange}
+            availableTime={availableTime}
+            setAvailableTime={setAvailableTime}
+            preferredDays={preferredDays}
+            handleDayChange={handleDayChange}
           />
-        </div>
-        <div>
-          <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Digite a senha novamente"
+        );
+      case 4:
+        return (
+          <HealthStep
+            injuries={injuries}
+            setInjuries={setInjuries}
+            limitations={limitations}
+            setLimitations={setLimitations}
+            medicalConditions={medicalConditions}
+            setMedicalConditions={setMedicalConditions}
+            supplements={supplements}
+            setSupplements={setSupplements}
+            additionalInfo={additionalInfo}
+            setAdditionalInfo={setAdditionalInfo}
           />
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderStep2 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="text-primary" size={24} />
-          Informações Básicas
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="age">Idade</Label>
-            <Input
-              id="age"
-              type="number"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              placeholder="Anos"
-            />
-          </div>
-          <div>
-            <Label htmlFor="weight">Peso</Label>
-            <Input
-              id="weight"
-              type="number"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              placeholder="kg"
-            />
-          </div>
-          <div>
-            <Label htmlFor="height">Altura</Label>
-            <Input
-              id="height"
-              type="number"
-              value={height}
-              onChange={(e) => setHeight(e.target.value)}
-              placeholder="cm"
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label>Nível de Atividade Física</Label>
-          <RadioGroup value={activityLevel} onValueChange={setActivityLevel}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="sedentario" id="sedentario" />
-              <Label htmlFor="sedentario">Sedentário</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="leve" id="leve" />
-              <Label htmlFor="leve">Levemente ativo</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="moderado" id="moderado" />
-              <Label htmlFor="moderado">Moderadamente ativo</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="muito" id="muito" />
-              <Label htmlFor="muito">Muito ativo</Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        <div>
-          <Label>Experiência com Jiu-Jitsu</Label>
-          <RadioGroup value={jiujitsuExperience} onValueChange={setJiujitsuExperience}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="iniciante" id="iniciante" />
-              <Label htmlFor="iniciante">Iniciante (0-1 ano)</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="intermediario" id="intermediario" />
-              <Label htmlFor="intermediario">Intermediário (1-3 anos)</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="avancado" id="avancado" />
-              <Label htmlFor="avancado">Avançado (3+ anos)</Label>
-            </div>
-          </RadioGroup>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderStep3 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Target className="text-primary" size={24} />
-          Objetivos e Disponibilidade
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label>Objetivos de Treino (selecione todos que se aplicam)</Label>
-          <div className="space-y-2 mt-2">
-            {["Perda de peso", "Ganho de massa muscular", "Melhora do condicionamento", "Força funcional", "Flexibilidade", "Melhora técnica no JJ"].map((goal) => (
-              <div key={goal} className="flex items-center space-x-2">
-                <Checkbox 
-                  id={goal}
-                  checked={trainingGoals.includes(goal)}
-                  onCheckedChange={(checked) => handleGoalChange(goal, checked as boolean)}
-                />
-                <Label htmlFor={goal}>{goal}</Label>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <Label>Tempo disponível para treino (minutos por sessão)</Label>
-          <div className="mt-2">
-            <Slider
-              value={availableTime}
-              onValueChange={setAvailableTime}
-              max={180}
-              min={30}
-              step={15}
-              className="w-full"
-            />
-            <div className="text-center mt-2 text-sm text-muted-foreground">
-              {availableTime[0]} minutos
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <Label>Dias preferidos para treino</Label>
-          <div className="grid grid-cols-4 gap-2 mt-2">
-            {["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"].map((day) => (
-              <div key={day} className="flex items-center space-x-2">
-                <Checkbox 
-                  id={day}
-                  checked={preferredDays.includes(day)}
-                  onCheckedChange={(checked) => handleDayChange(day, checked as boolean)}
-                />
-                <Label htmlFor={day} className="text-sm">{day}</Label>
-              </div>
-            ))}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderStep4 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Heart className="text-primary" size={24} />
-          Informações de Saúde
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label htmlFor="injuries">Lesões ou problemas físicos atuais</Label>
-          <Textarea
-            id="injuries"
-            value={injuries}
-            onChange={(e) => setInjuries(e.target.value)}
-            placeholder="Descreva qualquer lesão ou problema físico que possa afetar o treino"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="limitations">Limitações físicas</Label>
-          <Textarea
-            id="limitations"
-            value={limitations}
-            onChange={(e) => setLimitations(e.target.value)}
-            placeholder="Exercícios ou movimentos que não pode realizar"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="medicalConditions">Condições médicas</Label>
-          <Textarea
-            id="medicalConditions"
-            value={medicalConditions}
-            onChange={(e) => setMedicalConditions(e.target.value)}
-            placeholder="Diabetes, hipertensão, problemas cardíacos, etc."
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="supplements">Suplementos em uso</Label>
-          <Textarea
-            id="supplements"
-            value={supplements}
-            onChange={(e) => setSupplements(e.target.value)}
-            placeholder="Liste suplementos, medicamentos ou substâncias que utiliza"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="additionalInfo">Informações adicionais</Label>
-          <Textarea
-            id="additionalInfo"
-            value={additionalInfo}
-            onChange={(e) => setAdditionalInfo(e.target.value)}
-            placeholder="Qualquer outra informação que considere importante"
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -415,33 +214,9 @@ export const RegistrationPage = ({ onComplete }: RegistrationPageProps) => {
 
       <div className="p-6">
         <div className="max-w-2xl mx-auto">
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-4">
-              {[1, 2, 3, 4].map((step) => (
-                <div
-                  key={step}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    step <= currentStep
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {step}
-                </div>
-              ))}
-            </div>
-            <div className="w-full bg-muted rounded-full h-2">
-              <div
-                className="bg-primary h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(currentStep / 4) * 100}%` }}
-              />
-            </div>
-          </div>
+          <ProgressIndicator currentStep={currentStep} totalSteps={4} />
 
-          {currentStep === 1 && renderStep1()}
-          {currentStep === 2 && renderStep2()}
-          {currentStep === 3 && renderStep3()}
-          {currentStep === 4 && renderStep4()}
+          {renderCurrentStep()}
 
           <div className="flex justify-between mt-6">
             <Button
