@@ -80,28 +80,6 @@ export const DashboardHome = ({
           </Card>
         )}
 
-        {/* Frequency Display */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold">Sua Rotina</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onNavigate('frequency-setup')}
-              >
-                Alterar
-              </Button>
-            </div>
-            <p className="text-primary font-medium">{weeklyFrequency} dias por semana</p>
-            <p className="text-muted-foreground text-sm">
-              {weeklyFrequency === 2 && "Treinos A e B"}
-              {weeklyFrequency === 3 && "Treinos A, B e C"}
-              {weeklyFrequency === 4 && "Treinos A, B, C e A"}
-            </p>
-          </CardContent>
-        </Card>
-
         {/* Week Selector */}
         <Card className="mb-6">
           <CardContent className="p-4">
@@ -140,7 +118,7 @@ export const DashboardHome = ({
 
         {/* Main CTA */}
         {nextWorkout && (
-          <Card className="bg-primary/10 border-primary mb-8">
+          <Card className="bg-primary/10 border-primary mb-6">
             <CardContent className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
@@ -165,6 +143,28 @@ export const DashboardHome = ({
             </CardContent>
           </Card>
         )}
+
+        {/* Frequency Display */}
+        <Card className="mb-8">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold">Sua Rotina</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onNavigate('frequency-setup')}
+              >
+                Alterar
+              </Button>
+            </div>
+            <p className="text-primary font-medium">{weeklyFrequency} dias por semana</p>
+            <p className="text-muted-foreground text-sm">
+              {weeklyFrequency === 2 && "Treinos A e B"}
+              {weeklyFrequency === 3 && "Treinos A, B e C"}
+              {weeklyFrequency === 4 && "Treinos A, B, C e A"}
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Quick Access */}
         <div className="space-y-4">
