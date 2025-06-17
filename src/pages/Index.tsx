@@ -5,10 +5,11 @@ import { Dashboard } from "@/components/Dashboard";
 import { PaymentPage } from "@/components/PaymentPage";
 import { PaymentSuccessPage } from "@/components/PaymentSuccessPage";
 import { RegistrationPage } from "@/components/RegistrationPage";
+import { LoginPage } from "@/components/LoginPage";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from '@supabase/supabase-js';
 
-type AppState = 'landing' | 'payment' | 'paymentSuccess' | 'registration' | 'dashboard';
+type AppState = 'landing' | 'login' | 'payment' | 'paymentSuccess' | 'registration' | 'dashboard';
 
 const Index = () => {
   const [currentState, setCurrentState] = useState<AppState>('landing');
@@ -45,6 +46,14 @@ const Index = () => {
   }, []);
 
   const handleSignIn = () => {
+    setCurrentState('login');
+  };
+
+  const handleLoginSuccess = () => {
+    setCurrentState('dashboard');
+  };
+
+  const handleGoToSignUp = () => {
     setCurrentState('payment');
   };
 
@@ -76,6 +85,15 @@ const Index = () => {
   }
 
   switch (currentState) {
+    case 'login':
+      return (
+        <LoginPage 
+          onLoginSuccess={handleLoginSuccess}
+          onBack={handleBackToLanding}
+          onSignUp={handleGoToSignUp}
+        />
+      );
+    
     case 'payment':
       return <PaymentPage onPaymentComplete={handlePaymentComplete} onBack={handleBackToLanding} />;
     
