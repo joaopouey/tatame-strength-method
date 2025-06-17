@@ -69,6 +69,9 @@ export const RegistrationPage = ({ onComplete }: RegistrationPageProps) => {
     setLoading(true);
     
     try {
+      console.log("Iniciando criação de conta...");
+      
+      // Primeiro, criamos a conta
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -80,42 +83,62 @@ export const RegistrationPage = ({ onComplete }: RegistrationPageProps) => {
       });
 
       if (error) {
+        console.error('Erro no signup:', error);
         toast.error("Erro ao criar conta: " + error.message);
         return;
       }
 
-      if (data.user) {
-        // Save anamnesis data with correct field mapping
-        const { error: anamnesisError } = await supabase
-          .from('anamnesis')
-          .insert([
-            {
-              user_id: data.user.id,
-              age: parseInt(age) || null,
-              weight: parseFloat(weight) || null,
-              height: parseFloat(height) || null,
-              bjj_experience: jiujitsuExperience,
-              training_goals: trainingGoals.join(', '), // Convert array to string
-              training_frequency: availableTime[0],
-              current_injuries: injuries,
-              past_injuries: limitations,
-              health_conditions: medicalConditions,
-              medications: supplements,
-              additional_notes: additionalInfo
-            }
-          ]);
+      console.log("Conta criada, usuário:", data.user?.id);
 
-        if (anamnesisError) {
-          console.error('Error saving anamnesis:', anamnesisError);
-          toast.error("Erro ao salvar anamnese");
+      if (data.user) {
+        // Agora fazemos login para ter uma sessão válida
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (signInError) {
+          console.error('Erro no signin:', signInError);
+          toast.error("Erro ao fazer login: " + signInError.message);
           return;
         }
 
+        console.log("Login realizado, sessão:", signInData.session?.user?.id);
+
+        // Agora salvamos a anamnese com o usuário autenticado
+        const anamnesisData = {
+          user_id: signInData.session!.user.id,
+          age: age ? parseInt(age) : null,
+          weight: weight ? parseFloat(weight) : null,
+          height: height ? parseFloat(height) : null,
+          bjj_experience: jiujitsuExperience || null,
+          training_goals: trainingGoals.length > 0 ? trainingGoals.join(', ') : null,
+          training_frequency: availableTime[0] || null,
+          current_injuries: injuries || null,
+          past_injuries: limitations || null,
+          health_conditions: medicalConditions || null,
+          medications: supplements || null,
+          additional_notes: additionalInfo || null
+        };
+
+        console.log("Salvando anamnese:", anamnesisData);
+
+        const { error: anamnesisError } = await supabase
+          .from('anamnesis')
+          .insert([anamnesisData]);
+
+        if (anamnesisError) {
+          console.error('Erro ao salvar anamnese:', anamnesisError);
+          toast.error("Erro ao salvar anamnese: " + anamnesisError.message);
+          return;
+        }
+
+        console.log("Anamnese salva com sucesso");
         toast.success("Conta criada com sucesso!");
         onComplete();
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('Erro inesperado:', error);
       toast.error("Erro inesperado ao criar conta");
     } finally {
       setLoading(false);
