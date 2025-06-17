@@ -16,6 +16,8 @@ interface BasicInfoStepProps {
   setActivityLevel: (value: string) => void;
   jiujitsuExperience: string;
   setJiujitsuExperience: (value: string) => void;
+  sex: string;
+  setSex: (value: string) => void;
 }
 
 export const BasicInfoStep = ({
@@ -29,6 +31,8 @@ export const BasicInfoStep = ({
   setActivityLevel,
   jiujitsuExperience,
   setJiujitsuExperience,
+  sex,
+  setSex,
 }: BasicInfoStepProps) => {
   return (
     <Card>
@@ -39,7 +43,7 @@ export const BasicInfoStep = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           <div>
             <Label htmlFor="age">Idade</Label>
             <Input
@@ -70,26 +74,43 @@ export const BasicInfoStep = ({
               placeholder="cm"
             />
           </div>
+          <div>
+            <Label>Sexo</Label>
+            <RadioGroup value={sex} onValueChange={setSex}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="masculino" id="masculino" />
+                <Label htmlFor="masculino">Masculino</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="feminino" id="feminino" />
+                <Label htmlFor="feminino">Feminino</Label>
+              </div>
+            </RadioGroup>
+          </div>
         </div>
 
         <div>
-          <Label>Nível de Atividade Física</Label>
+          <Label>Quantas vezes por semana treina jiu-jitsu?</Label>
           <RadioGroup value={activityLevel} onValueChange={setActivityLevel}>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="sedentario" id="sedentario" />
-              <Label htmlFor="sedentario">Sedentário</Label>
+              <RadioGroupItem value="2" id="duas" />
+              <Label htmlFor="duas">2 vezes</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="leve" id="leve" />
-              <Label htmlFor="leve">Levemente ativo</Label>
+              <RadioGroupItem value="3" id="tres" />
+              <Label htmlFor="tres">3 vezes</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="moderado" id="moderado" />
-              <Label htmlFor="moderado">Moderadamente ativo</Label>
+              <RadioGroupItem value="4" id="quatro" />
+              <Label htmlFor="quatro">4 vezes</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="muito" id="muito" />
-              <Label htmlFor="muito">Muito ativo</Label>
+              <RadioGroupItem value="5" id="cinco" />
+              <Label htmlFor="cinco">5 vezes</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="5+" id="mais" />
+              <Label htmlFor="mais">Mais de 5 vezes</Label>
             </div>
           </RadioGroup>
         </div>

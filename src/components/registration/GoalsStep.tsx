@@ -34,7 +34,12 @@ export const GoalsStep = ({
         <div>
           <Label>Objetivos de Treino (selecione todos que se aplicam)</Label>
           <div className="space-y-2 mt-2">
-            {["Perda de peso", "Ganho de massa muscular", "Melhora do condicionamento", "Força funcional", "Flexibilidade", "Melhora técnica no JJ"].map((goal) => (
+            {[
+              "Melhora no condicionamento de forma geral", 
+              "Mais força durante as aulas de jiu jitsu", 
+              "Melhor performance nos campeonatos", 
+              "Recuperação mais rápida entre as lutas"
+            ].map((goal) => (
               <div key={goal} className="flex items-center space-x-2">
                 <Checkbox 
                   id={goal}
@@ -53,9 +58,9 @@ export const GoalsStep = ({
             <Slider
               value={availableTime}
               onValueChange={setAvailableTime}
-              max={180}
+              max={60}
               min={30}
-              step={15}
+              step={5}
               className="w-full"
             />
             <div className="text-center mt-2 text-sm text-muted-foreground">

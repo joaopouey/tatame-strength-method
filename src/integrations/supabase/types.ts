@@ -22,6 +22,7 @@ export type Database = {
           id: string
           medications: string | null
           past_injuries: string | null
+          sex: string | null
           training_frequency: number | null
           training_goals: string | null
           updated_at: string
@@ -40,6 +41,7 @@ export type Database = {
           id?: string
           medications?: string | null
           past_injuries?: string | null
+          sex?: string | null
           training_frequency?: number | null
           training_goals?: string | null
           updated_at?: string
@@ -58,6 +60,7 @@ export type Database = {
           id?: string
           medications?: string | null
           past_injuries?: string | null
+          sex?: string | null
           training_frequency?: number | null
           training_goals?: string | null
           updated_at?: string

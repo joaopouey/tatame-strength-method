@@ -28,10 +28,11 @@ export const RegistrationPage = ({ onComplete }: RegistrationPageProps) => {
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
+  const [sex, setSex] = useState("");
   const [activityLevel, setActivityLevel] = useState("");
   const [jiujitsuExperience, setJiujitsuExperience] = useState("");
   const [trainingGoals, setTrainingGoals] = useState<string[]>([]);
-  const [availableTime, setAvailableTime] = useState([60]);
+  const [availableTime, setAvailableTime] = useState([45]);
   const [preferredDays, setPreferredDays] = useState<string[]>([]);
   const [injuries, setInjuries] = useState("");
   const [limitations, setLimitations] = useState("");
@@ -111,6 +112,7 @@ export const RegistrationPage = ({ onComplete }: RegistrationPageProps) => {
           age: age ? parseInt(age) : null,
           weight: weight ? parseFloat(weight) : null,
           height: height ? parseFloat(height) : null,
+          sex: sex || null,
           bjj_experience: jiujitsuExperience || null,
           training_goals: trainingGoals.length > 0 ? trainingGoals.join(', ') : null,
           training_frequency: availableTime[0] || null,
@@ -187,6 +189,8 @@ export const RegistrationPage = ({ onComplete }: RegistrationPageProps) => {
             setWeight={setWeight}
             height={height}
             setHeight={setHeight}
+            sex={sex}
+            setSex={setSex}
             activityLevel={activityLevel}
             setActivityLevel={setActivityLevel}
             jiujitsuExperience={jiujitsuExperience}
