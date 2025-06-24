@@ -34,12 +34,7 @@ export const DashboardHome = ({
   onSelectWorkout,
 }: DashboardHomeProps) => {
   const [completedWorkouts, setCompletedWorkouts] = useState<string[]>([]);
-  const [canAccessWeek, setCanAccessWeek] = useState<{[key: number]: boolean}>({
-    1: true,
-    2: false,
-    3: false,
-    4: false
-  });
+  const [currentAccessibleWeek, setCurrentAccessibleWeek] = useState(1);
 
   useEffect(() => {
     // Carregar treinos concluídos do localStorage
@@ -48,20 +43,15 @@ export const DashboardHome = ({
       const completed = JSON.parse(savedWorkouts);
       setCompletedWorkouts(completed.map((w: any) => w.workoutId));
       
-      // Lógica para liberar semanas baseada em treinos concluídos
-      updateWeekAccess(completed);
+      // Determinar qual semana está atualmente acessível
+      updateAccessibleWeek(completed);
     }
   }, []);
 
-  const updateWeekAccess = (completed: any[]) => {
-    const weeklyProgress = {
-      1: false,
-      2: false,
-      3: false,
-      4: false
-    };
+  const updateAccessibleWeek = (completed: any[]) => {
+    let accessibleWeek = 1;
 
-    // Verificar se cada semana foi concluída
+    // Verificar cada semana sequencialmente
     for (let week = 1; week <= 4; week++) {
       const weekWorkouts = getWorkoutsByFrequency(week, weeklyFrequency);
       const weekWorkoutIds = weekWorkouts.map(w => w.id);
@@ -69,19 +59,22 @@ export const DashboardHome = ({
         c.week === week && weekWorkoutIds.includes(c.workoutId)
       );
       
-      weeklyProgress[week as keyof typeof weeklyProgress] = 
-        completedInWeek.length === weekWorkoutIds.length;
+      const isWeekCompleted = completedInWeek.length === weekWorkoutIds.length;
+      
+      if (!isWeekCompleted) {
+        accessibleWeek = week;
+        break;
+      }
+      
+      // Se chegou na última semana e ela está completa, mantém acesso à semana 4
+      if (week === 4 && isWeekCompleted) {
+        accessibleWeek = 4;
+      } else if (isWeekCompleted) {
+        accessibleWeek = week + 1;
+      }
     }
 
-    // Liberar acesso: semana 1 sempre liberada, próximas liberadas após conclusão da anterior
-    const newAccess = {
-      1: true,
-      2: weeklyProgress[1],
-      3: weeklyProgress[2],
-      4: weeklyProgress[3]
-    };
-
-    setCanAccessWeek(newAccess);
+    setCurrentAccessibleWeek(accessibleWeek);
   };
 
   const todayWorkouts = getWorkoutsByFrequency(currentWeek, weeklyFrequency);
@@ -91,6 +84,19 @@ export const DashboardHome = ({
 
   const handleUpgradeSubscription = () => {
     onNavigate('payment');
+  };
+
+  const isWeekAccessible = (week: number) => {
+    return week <= currentAccessibleWeek;
+  };
+
+  const isWeekCompleted = (week: number) => {
+    const weekWorkouts = getWorkoutsByFrequency(week, weeklyFrequency);
+    const weekWorkoutIds = weekWorkouts.map(w => w.id);
+    const completedInWeek = completedWorkouts.filter(workoutId => 
+      weekWorkoutIds.includes(workoutId)
+    );
+    return completedInWeek.length === weekWorkoutIds.length;
   };
 
   return (
@@ -179,8 +185,9 @@ export const DashboardHome = ({
             <h3 className="font-semibold mb-4">Selecionar Semana</h3>
             <div className="grid grid-cols-4 gap-2">
               {[1, 2, 3, 4].map((week) => {
-                const isAccessible = canAccessWeek[week as keyof typeof canAccessWeek];
+                const isAccessible = isWeekAccessible(week);
                 const isCurrent = week === currentWeek;
+                const completed = isWeekCompleted(week);
                 
                 return (
                   <Button
@@ -192,6 +199,9 @@ export const DashboardHome = ({
                   >
                     {!isAccessible && (
                       <Lock size={12} className="absolute top-1 right-1" />
+                    )}
+                    {completed && isAccessible && (
+                      <CheckCircle size={12} className="absolute top-1 right-1 text-green-600" />
                     )}
                     <div className="text-center">
                       <div className="font-medium">S{week}</div>
@@ -214,7 +224,7 @@ export const DashboardHome = ({
         <Card>
           <CardContent className="p-4">
             <h3 className="font-semibold mb-4">Treinos da Semana {currentWeek}</h3>
-            {!canAccessWeek[currentWeek as keyof typeof canAccessWeek] ? (
+            {!isWeekAccessible(currentWeek) ? (
               <div className="text-center py-8">
                 <Lock className="mx-auto mb-2 text-muted-foreground" size={32} />
                 <p className="text-muted-foreground">Complete a semana anterior para desbloquear</p>
