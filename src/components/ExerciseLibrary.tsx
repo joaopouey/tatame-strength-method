@@ -1,40 +1,88 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Play } from "lucide-react";
+import { Play, Search } from "lucide-react";
+import { ExerciseVideoModal } from "./ExerciseVideoModal";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ExerciseLibraryProps {
   onBack: () => void;
 }
 
+interface Exercise {
+  id: string;
+  name: string;
+  description: string;
+  muscle_groups: string[];
+  equipment: string;
+  difficulty_level: string;
+  video_url: string;
+}
+
 export const ExerciseLibrary = ({ onBack }: ExerciseLibraryProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [selectedExerciseVideo, setSelectedExerciseVideo] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const exercises = [
-    { id: 1, name: "Agachamento Livre", category: "pernas", muscleGroup: "Pernas" },
-    { id: 2, name: "Supino Reto", category: "empurrada", muscleGroup: "Peito" },
-    { id: 3, name: "Puxada Alta", category: "puxada", muscleGroup: "Costas" },
-    { id: 4, name: "Desenvolvimento", category: "empurrada", muscleGroup: "Ombros" },
-    { id: 5, name: "Remada Curvada", category: "puxada", muscleGroup: "Costas" },
-    { id: 6, name: "Leg Press", category: "pernas", muscleGroup: "Pernas" },
-    { id: 7, name: "Rosca Direta", category: "puxada", muscleGroup: "Bíceps" },
-    { id: 8, name: "Tríceps Testa", category: "empurrada", muscleGroup: "Tríceps" },
-  ];
+  // Carregar exercícios do banco de dados
+  useEffect(() => {
+    const loadExercises = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('exercises')
+          .select('*')
+          .order('name');
+
+        if (error) {
+          console.error('Erro ao carregar exercícios:', error);
+          toast.error("Erro ao carregar exercícios");
+          return;
+        }
+
+        setExercises(data || []);
+      } catch (error) {
+        console.error('Erro inesperado:', error);
+        toast.error("Erro inesperado ao carregar exercícios");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadExercises();
+  }, []);
 
   const filters = [
     { value: 'all', label: 'Todos' },
-    { value: 'pernas', label: 'Pernas' },
-    { value: 'puxada', label: 'Puxada' },
-    { value: 'empurrada', label: 'Empurrada' },
+    { value: 'Iniciante', label: 'Iniciante' },
+    { value: 'Intermediário', label: 'Intermediário' },
+    { value: 'Avançado', label: 'Avançado' },
   ];
 
   const filteredExercises = exercises.filter(exercise => {
-    const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = selectedFilter === 'all' || exercise.category === selectedFilter;
+    const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         exercise.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = selectedFilter === 'all' || exercise.difficulty_level === selectedFilter;
     return matchesSearch && matchesFilter;
   });
+
+  const getMuscleGroupsText = (muscleGroups: string[]) => {
+    if (!muscleGroups || muscleGroups.length === 0) return 'Múltiplos grupos';
+    return muscleGroups.join(', ');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="max-w-md mx-auto text-center">
+          <p className="text-muted-foreground">Carregando exercícios...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -47,13 +95,16 @@ export const ExerciseLibrary = ({ onBack }: ExerciseLibraryProps) => {
           <h1 className="text-2xl font-bold mb-4">Biblioteca de Exercícios</h1>
           
           {/* Search */}
-          <input
-            type="text"
-            placeholder="Buscar exercício..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-input border border-border rounded-lg px-4 py-3 mb-4 mobile-tap-target"
-          />
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+            <input
+              type="text"
+              placeholder="Buscar exercício..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-input border border-border rounded-lg pl-10 pr-4 py-3 mobile-tap-target"
+            />
+          </div>
           
           {/* Filters */}
           <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
@@ -78,13 +129,33 @@ export const ExerciseLibrary = ({ onBack }: ExerciseLibraryProps) => {
           {filteredExercises.map((exercise) => (
             <Card key={exercise.id} className="exercise-card">
               <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-primary/20 rounded-lg flex items-center justify-center">
-                    <Play className="text-primary" size={24} />
-                  </div>
-                  <div className="flex-1">
+                <div className="flex items-start gap-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedExerciseVideo(exercise.name)}
+                    className="flex-shrink-0"
+                  >
+                    <Play size={16} />
+                  </Button>
+                  <div className="flex-1 min-w-0">
                     <h3 className="font-semibold mb-1">{exercise.name}</h3>
-                    <p className="text-muted-foreground text-sm">{exercise.muscleGroup}</p>
+                    <p className="text-muted-foreground text-sm mb-2">
+                      {getMuscleGroupsText(exercise.muscle_groups)}
+                    </p>
+                    {exercise.description && (
+                      <p className="text-sm text-muted-foreground mb-2">{exercise.description}</p>
+                    )}
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="bg-primary/10 text-primary px-2 py-1 rounded">
+                        {exercise.difficulty_level}
+                      </span>
+                      {exercise.equipment && (
+                        <span className="bg-secondary text-secondary-foreground px-2 py-1 rounded">
+                          {exercise.equipment}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -97,6 +168,13 @@ export const ExerciseLibrary = ({ onBack }: ExerciseLibraryProps) => {
             <p className="text-muted-foreground">Nenhum exercício encontrado</p>
           </div>
         )}
+
+        {/* Exercise Video Modal */}
+        <ExerciseVideoModal
+          exerciseName={selectedExerciseVideo || ""}
+          isOpen={!!selectedExerciseVideo}
+          onClose={() => setSelectedExerciseVideo(null)}
+        />
       </div>
     </div>
   );

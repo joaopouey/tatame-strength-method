@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Play, Save } from "lucide-react";
+import { CheckCircle, Play, Save, History } from "lucide-react";
 import { getWorkoutById } from "@/data/workouts";
 import { ExerciseVideoModal } from "./ExerciseVideoModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,10 +22,60 @@ interface ExerciseLog {
   isCompleted: boolean;
 }
 
+interface ExerciseHistory {
+  lastExecuted: string;
+  lastWeight: number;
+  lastRpe: number;
+}
+
 export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPageProps) => {
   const [exerciseLogs, setExerciseLogs] = useState<{[key: number]: ExerciseLog}>({});
+  const [exerciseHistory, setExerciseHistory] = useState<{[key: string]: ExerciseHistory}>({});
   const [selectedExerciseVideo, setSelectedExerciseVideo] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Carregar histórico dos exercícios
+  useEffect(() => {
+    const loadExerciseHistory = async () => {
+      const workout = getWorkoutById(workoutId!);
+      if (!workout) return;
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Buscar o último treino de cada exercício
+        for (const exercise of workout.exercises) {
+          const { data: lastLog } = await supabase
+            .from('exercise_logs')
+            .select('completed_at, weight_used, rpe_score')
+            .eq('user_id', user.id)
+            .eq('exercise_name', exercise.name)
+            .eq('is_completed', true)
+            .order('completed_at', { ascending: false })
+            .limit(1);
+
+          if (lastLog && lastLog.length > 0) {
+            const log = lastLog[0];
+            setExerciseHistory(prev => ({
+              ...prev,
+              [exercise.name]: {
+                lastExecuted: log.completed_at,
+                lastWeight: log.weight_used,
+                lastRpe: log.rpe_score
+              }
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+      }
+    };
+
+    if (workoutId) {
+      loadExerciseHistory();
+    }
+  }, [workoutId]);
 
   const updateExerciseLog = (exerciseId: number, exerciseName: string, updates: Partial<ExerciseLog>) => {
     setExerciseLogs(prev => ({
@@ -78,6 +128,17 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
 
       // Marcar como concluído localmente
       updateExerciseLog(exerciseId, exerciseName, { isCompleted: true });
+      
+      // Atualizar histórico
+      setExerciseHistory(prev => ({
+        ...prev,
+        [exerciseName]: {
+          lastExecuted: new Date().toISOString(),
+          lastWeight: parseFloat(exerciseLog.weight),
+          lastRpe: exerciseLog.rpe
+        }
+      }));
+
       toast.success("Exercício salvo com sucesso!");
 
     } catch (error) {
@@ -153,6 +214,11 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
     }
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR');
+  };
+
   if (!workoutId) {
     return (
       <div className="p-6">
@@ -216,6 +282,7 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
           {workout.exercises.map((exercise) => {
             const exerciseLog = exerciseLogs[exercise.id];
             const isCompleted = exerciseLog?.isCompleted || false;
+            const history = exerciseHistory[exercise.name];
             
             return (
               <Card key={exercise.id} className={`exercise-card ${isCompleted ? 'bg-green-50 border-green-200' : ''}`}>
@@ -237,6 +304,28 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
                       <p className="text-primary text-sm font-medium mb-2">{exercise.sets}</p>
                       {exercise.note && (
                         <p className="text-muted-foreground text-sm mb-3">{exercise.note}</p>
+                      )}
+                      
+                      {/* BJJ Impact Explanation */}
+                      <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="text-blue-700 text-sm">
+                          <strong>Benefício no Jiu-Jitsu:</strong> {exercise.bjjBenefit || "Este exercício contribui para o fortalecimento geral e melhoria da performance no tatame."}
+                        </p>
+                      </div>
+
+                      {/* Exercise History */}
+                      {history && (
+                        <div className="mb-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <History size={16} className="text-slate-600" />
+                            <span className="text-slate-700 text-sm font-medium">Última execução:</span>
+                          </div>
+                          <div className="text-slate-600 text-sm space-y-1">
+                            <p><strong>Data:</strong> {formatDate(history.lastExecuted)}</p>
+                            <p><strong>Peso:</strong> {history.lastWeight}kg</p>
+                            <p><strong>RPE:</strong> {history.lastRpe}</p>
+                          </div>
+                        </div>
                       )}
                       
                       {/* Load and RPE Guidance */}
