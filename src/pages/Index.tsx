@@ -107,7 +107,7 @@ const Index = () => {
       return <Dashboard />;
     
     default:
-      return <LandingPage onSignIn={handleSignIn} onSignUp={handleGoToSignUp} />;
+      return <LandingPage onSignIn={handleSignIn} />;
   }
 };
 
