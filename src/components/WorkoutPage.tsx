@@ -1,9 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Check, Play } from "lucide-react";
+import { CheckCircle, Play, Save } from "lucide-react";
 import { getWorkoutById } from "@/data/workouts";
 import { ExerciseVideoModal } from "./ExerciseVideoModal";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface WorkoutPageProps {
   workoutId: string | null;
@@ -11,75 +14,143 @@ interface WorkoutPageProps {
   onWorkoutCompleted?: (workoutId: string) => void;
 }
 
-interface WorkoutHistory {
+interface ExerciseLog {
   exerciseId: number;
   exerciseName: string;
   weight: string;
-  rpe: string;
-  date: string;
+  rpe: number | null;
+  isCompleted: boolean;
 }
 
 export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPageProps) => {
-  const [completedExercises, setCompletedExercises] = useState<number[]>([]);
-  const [weights, setWeights] = useState<{[key: number]: string}>({});
-  const [workoutHistory, setWorkoutHistory] = useState<WorkoutHistory[]>([]);
+  const [exerciseLogs, setExerciseLogs] = useState<{[key: number]: ExerciseLog}>({});
   const [selectedExerciseVideo, setSelectedExerciseVideo] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    // Carregar histórico do localStorage
-    const savedHistory = localStorage.getItem('workoutHistory');
-    if (savedHistory) {
-      setWorkoutHistory(JSON.parse(savedHistory));
-    }
-  }, []);
-
-  const toggleComplete = (id: number) => {
-    setCompletedExercises(prev => 
-      prev.includes(id) 
-        ? prev.filter(exerciseId => exerciseId !== id)
-        : [...prev, id]
-    );
-  };
-
-  const updateWeight = (id: number, weight: string) => {
-    setWeights(prev => ({ ...prev, [id]: weight }));
-  };
-
-  const getLastExerciseData = (exerciseId: number, exerciseName: string) => {
-    const lastEntry = workoutHistory
-      .filter(h => h.exerciseId === exerciseId || h.exerciseName === exerciseName)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-    return lastEntry;
-  };
-
-  const completeWorkout = () => {
-    // Salvar histórico de cargas
-    const newHistory = workout.exercises.map(exercise => ({
-      exerciseId: exercise.id,
-      exerciseName: exercise.name,
-      weight: weights[exercise.id] || '',
-      rpe: exercise.rpeGuidance,
-      date: new Date().toISOString()
+  const updateExerciseLog = (exerciseId: number, exerciseName: string, updates: Partial<ExerciseLog>) => {
+    setExerciseLogs(prev => ({
+      ...prev,
+      [exerciseId]: {
+        exerciseId,
+        exerciseName,
+        weight: '',
+        rpe: null,
+        isCompleted: false,
+        ...prev[exerciseId],
+        ...updates
+      }
     }));
+  };
 
-    const updatedHistory = [...workoutHistory, ...newHistory];
-    localStorage.setItem('workoutHistory', JSON.stringify(updatedHistory));
+  const saveExerciseLog = async (exerciseId: number, exerciseName: string) => {
+    const exerciseLog = exerciseLogs[exerciseId];
     
-    // Marcar treino como concluído
-    const completedWorkouts = JSON.parse(localStorage.getItem('completedWorkouts') || '[]');
-    completedWorkouts.push({
-      workoutId,
-      date: new Date().toISOString(),
-      week: workout.week,
-      type: workout.type
-    });
-    localStorage.setItem('completedWorkouts', JSON.stringify(completedWorkouts));
-
-    if (onWorkoutCompleted) {
-      onWorkoutCompleted(workoutId);
+    if (!exerciseLog?.weight || !exerciseLog?.rpe) {
+      toast.error("Por favor, preencha o peso e o RPE antes de salvar");
+      return;
     }
 
-    onBack();
+    try {
+      setIsLoading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Usuário não autenticado");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('exercise_logs')
+        .insert({
+          user_id: user.id,
+          exercise_name: exerciseName,
+          weight_used: parseFloat(exerciseLog.weight),
+          rpe_score: exerciseLog.rpe,
+          is_completed: true,
+          completed_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Erro ao salvar exercício:', error);
+        toast.error("Erro ao salvar exercício");
+        return;
+      }
+
+      // Marcar como concluído localmente
+      updateExerciseLog(exerciseId, exerciseName, { isCompleted: true });
+      toast.success("Exercício salvo com sucesso!");
+
+    } catch (error) {
+      console.error('Erro inesperado:', error);
+      toast.error("Erro inesperado ao salvar exercício");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const completeWorkout = async () => {
+    const workout = getWorkoutById(workoutId!);
+    if (!workout) return;
+
+    const completedExercises = Object.values(exerciseLogs).filter(log => log.isCompleted);
+    
+    if (completedExercises.length !== workout.exercises.length) {
+      toast.error("Complete todos os exercícios antes de finalizar o treino");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Usuário não autenticado");
+        return;
+      }
+
+      // Salvar o treino como concluído
+      const { error } = await supabase
+        .from('workouts')
+        .insert({
+          user_id: user.id,
+          workout_name: workout.title,
+          workout_type: workout.type,
+          week_number: workout.week,
+          day_number: workout.dayNumber,
+          is_completed: true,
+          completed_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Erro ao salvar treino:', error);
+        toast.error("Erro ao salvar treino");
+        return;
+      }
+
+      // Manter compatibilidade com localStorage para o sistema atual
+      const completedWorkouts = JSON.parse(localStorage.getItem('completedWorkouts') || '[]');
+      completedWorkouts.push({
+        workoutId,
+        date: new Date().toISOString(),
+        week: workout.week,
+        type: workout.type
+      });
+      localStorage.setItem('completedWorkouts', JSON.stringify(completedWorkouts));
+
+      toast.success("Treino concluído com sucesso!");
+      
+      if (onWorkoutCompleted) {
+        onWorkoutCompleted(workoutId);
+      }
+
+      onBack();
+
+    } catch (error) {
+      console.error('Erro inesperado:', error);
+      toast.error("Erro inesperado ao concluir treino");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!workoutId) {
@@ -106,7 +177,8 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
     );
   }
 
-  const allExercisesCompleted = completedExercises.length === workout.exercises.length;
+  const completedExercisesCount = Object.values(exerciseLogs).filter(log => log.isCompleted).length;
+  const allExercisesCompleted = completedExercisesCount === workout.exercises.length;
 
   return (
     <div className="p-6">
@@ -142,9 +214,11 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
         {/* Exercise List */}
         <div className="space-y-4">
           {workout.exercises.map((exercise) => {
-            const lastExerciseData = getLastExerciseData(exercise.id, exercise.name);
+            const exerciseLog = exerciseLogs[exercise.id];
+            const isCompleted = exerciseLog?.isCompleted || false;
+            
             return (
-              <Card key={exercise.id} className="exercise-card">
+              <Card key={exercise.id} className={`exercise-card ${isCompleted ? 'bg-green-50 border-green-200' : ''}`}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <div className="flex-1">
@@ -165,49 +239,65 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
                         <p className="text-muted-foreground text-sm mb-3">{exercise.note}</p>
                       )}
                       
-                      {/* Load and RPE Guidance - Always Visible */}
+                      {/* Load and RPE Guidance */}
                       <div className="mb-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                        <p className="text-slate-700 text-sm mb-1">
-                          <strong>Carga:</strong> {exercise.loadGuidance}
-                        </p>
                         <p className="text-slate-700 text-sm">
                           <strong>Ajuste da Carga:</strong> {exercise.rpeGuidance}
                         </p>
                       </div>
                       
-                      <div className="flex items-center justify-between">
+                      <div className="space-y-3">
+                        {/* Weight Input */}
                         <div className="flex items-center gap-2">
-                          <label className="text-sm text-muted-foreground">Carga usada:</label>
+                          <label className="text-sm text-muted-foreground min-w-fit">Peso usado:</label>
                           <input
-                            type="text"
-                            value={weights[exercise.id] || ''}
-                            onChange={(e) => updateWeight(exercise.id, e.target.value)}
-                            placeholder="ex: 60"
+                            type="number"
+                            step="0.5"
+                            value={exerciseLog?.weight || ''}
+                            onChange={(e) => updateExerciseLog(exercise.id, exercise.name, { weight: e.target.value })}
+                            placeholder="60"
                             className="bg-input border border-border rounded px-2 py-1 text-sm w-20 mobile-tap-target"
+                            disabled={isCompleted}
                           />
                           <span className="text-sm text-muted-foreground">kg</span>
                         </div>
                         
-                        <button
-                          onClick={() => toggleComplete(exercise.id)}
-                          className="mobile-tap-target"
-                        >
-                          <CheckCircle 
-                            className={`${
-                              completedExercises.includes(exercise.id) 
-                                ? 'text-primary' 
-                                : 'text-muted-foreground'
-                            } transition-colors`}
-                            size={24}
-                          />
-                        </button>
-                      </div>
-                      
-                      {lastExerciseData && (
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          <span>Última vez: {lastExerciseData.weight}kg | RPE: {lastExerciseData.rpe}</span>
+                        {/* RPE Input */}
+                        <div className="flex items-center gap-2">
+                          <label className="text-sm text-muted-foreground min-w-fit">Nível de esforço (RPE):</label>
+                          <select
+                            value={exerciseLog?.rpe || ''}
+                            onChange={(e) => updateExerciseLog(exercise.id, exercise.name, { rpe: parseInt(e.target.value) })}
+                            className="bg-input border border-border rounded px-2 py-1 text-sm mobile-tap-target"
+                            disabled={isCompleted}
+                          >
+                            <option value="">Selecione</option>
+                            {[6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map(rpe => (
+                              <option key={rpe} value={rpe}>RPE {rpe}</option>
+                            ))}
+                          </select>
                         </div>
-                      )}
+                        
+                        {/* Save/Complete Button */}
+                        <div className="flex justify-end">
+                          {isCompleted ? (
+                            <div className="flex items-center gap-2 text-green-600">
+                              <CheckCircle size={20} />
+                              <span className="text-sm font-medium">Exercício Concluído</span>
+                            </div>
+                          ) : (
+                            <Button
+                              onClick={() => saveExerciseLog(exercise.id, exercise.name)}
+                              disabled={!exerciseLog?.weight || !exerciseLog?.rpe || isLoading}
+                              size="sm"
+                              className="mobile-tap-target"
+                            >
+                              <Save size={16} className="mr-1" />
+                              Exercício Concluído
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -220,11 +310,10 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
         <div className="mt-8">
           <Button 
             onClick={completeWorkout}
-            disabled={!allExercisesCompleted}
+            disabled={!allExercisesCompleted || isLoading}
             className="w-full primary-button"
           >
-            <Check className="mr-2" size={16} />
-            {allExercisesCompleted ? 'Treino Concluído!' : `Complete todos os exercícios (${completedExercises.length}/${workout.exercises.length})`}
+            {allExercisesCompleted ? 'Finalizar Treino' : `Complete todos os exercícios (${completedExercisesCount}/${workout.exercises.length})`}
           </Button>
         </div>
 
