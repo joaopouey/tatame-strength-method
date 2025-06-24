@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Check } from "lucide-react";
+import { CheckCircle, Check, Play } from "lucide-react";
 import { getWorkoutById } from "@/data/workouts";
+import { ExerciseVideoModal } from "./ExerciseVideoModal";
 
 interface WorkoutPageProps {
   workoutId: string | null;
@@ -23,6 +23,7 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
   const [completedExercises, setCompletedExercises] = useState<number[]>([]);
   const [weights, setWeights] = useState<{[key: number]: string}>({});
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutHistory[]>([]);
+  const [selectedExerciseVideo, setSelectedExerciseVideo] = useState<string | null>(null);
 
   useEffect(() => {
     // Carregar histórico do localStorage
@@ -31,30 +32,6 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
       setWorkoutHistory(JSON.parse(savedHistory));
     }
   }, []);
-
-  if (!workoutId) {
-    return (
-      <div className="p-6">
-        <div className="max-w-md mx-auto text-center">
-          <p className="text-muted-foreground">Treino não encontrado</p>
-          <Button onClick={onBack} className="mt-4">Voltar</Button>
-        </div>
-      </div>
-    );
-  }
-
-  const workout = getWorkoutById(workoutId);
-  
-  if (!workout) {
-    return (
-      <div className="p-6">
-        <div className="max-w-md mx-auto text-center">
-          <p className="text-muted-foreground">Treino não encontrado</p>
-          <Button onClick={onBack} className="mt-4">Voltar</Button>
-        </div>
-      </div>
-    );
-  }
 
   const toggleComplete = (id: number) => {
     setCompletedExercises(prev => 
@@ -105,6 +82,30 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
     onBack();
   };
 
+  if (!workoutId) {
+    return (
+      <div className="p-6">
+        <div className="max-w-md mx-auto text-center">
+          <p className="text-muted-foreground">Treino não encontrado</p>
+          <Button onClick={onBack} className="mt-4">Voltar</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const workout = getWorkoutById(workoutId);
+  
+  if (!workout) {
+    return (
+      <div className="p-6">
+        <div className="max-w-md mx-auto text-center">
+          <p className="text-muted-foreground">Treino não encontrado</p>
+          <Button onClick={onBack} className="mt-4">Voltar</Button>
+        </div>
+      </div>
+    );
+  }
+
   const allExercisesCompleted = completedExercises.length === workout.exercises.length;
 
   return (
@@ -147,7 +148,18 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <div className="flex-1">
-                      <h3 className="font-semibold mb-1">{exercise.name}</h3>
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-semibold">{exercise.name}</h3>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedExerciseVideo(exercise.name)}
+                          className="ml-2"
+                        >
+                          <Play size={14} className="mr-1" />
+                          Vídeo
+                        </Button>
+                      </div>
                       <p className="text-primary text-sm font-medium mb-2">{exercise.sets}</p>
                       {exercise.note && (
                         <p className="text-muted-foreground text-sm mb-3">{exercise.note}</p>
@@ -215,6 +227,13 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
             {allExercisesCompleted ? 'Treino Concluído!' : `Complete todos os exercícios (${completedExercises.length}/${workout.exercises.length})`}
           </Button>
         </div>
+
+        {/* Exercise Video Modal */}
+        <ExerciseVideoModal
+          exerciseName={selectedExerciseVideo || ""}
+          isOpen={!!selectedExerciseVideo}
+          onClose={() => setSelectedExerciseVideo(null)}
+        />
       </div>
     </div>
   );
