@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Play, Save, History } from "lucide-react";
+import { CheckCircle, Play, Save, History, ChevronDown, ChevronUp } from "lucide-react";
 import { getWorkoutById } from "@/data/workouts";
 import { ExerciseVideoModal } from "./ExerciseVideoModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +32,7 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
   const [exerciseHistory, setExerciseHistory] = useState<{[key: string]: ExerciseHistory}>({});
   const [selectedExerciseVideo, setSelectedExerciseVideo] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [expandedBenefits, setExpandedBenefits] = useState<{[key: number]: boolean}>({});
 
   // Carregar histórico dos exercícios
   useEffect(() => {
@@ -219,6 +219,13 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
     return date.toLocaleDateString('pt-BR');
   };
 
+  const toggleBenefit = (exerciseId: number) => {
+    setExpandedBenefits(prev => ({
+      ...prev,
+      [exerciseId]: !prev[exerciseId]
+    }));
+  };
+
   if (!workoutId) {
     return (
       <div className="p-6">
@@ -283,6 +290,7 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
             const exerciseLog = exerciseLogs[exercise.id];
             const isCompleted = exerciseLog?.isCompleted || false;
             const history = exerciseHistory[exercise.name];
+            const isBenefitExpanded = expandedBenefits[exercise.id];
             
             return (
               <Card key={exercise.id} className={`exercise-card ${isCompleted ? 'bg-green-50 border-green-200' : ''}`}>
@@ -306,12 +314,25 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
                         <p className="text-muted-foreground text-sm mb-3">{exercise.note}</p>
                       )}
                       
-                      {/* BJJ Impact Explanation */}
-                      <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <p className="text-blue-700 text-sm">
-                          <strong>Benefício no Jiu-Jitsu:</strong> {exercise.bjjBenefit || "Este exercício contribui para o fortalecimento geral e melhoria da performance no tatame."}
-                        </p>
-                      </div>
+                      {/* BJJ Benefit - Collapsible */}
+                      {exercise.bjjBenefit && (
+                        <div className="mb-3">
+                          <button
+                            onClick={() => toggleBenefit(exercise.id)}
+                            className="flex items-center gap-2 text-sm font-medium text-blue-700 hover:text-blue-800 mb-2"
+                          >
+                            Benefício no Jiu-Jitsu
+                            {isBenefitExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          </button>
+                          {isBenefitExpanded && (
+                            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                              <p className="text-blue-700 text-sm">
+                                {exercise.bjjBenefit}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* Exercise History */}
                       {history && (
@@ -336,35 +357,36 @@ export const WorkoutPage = ({ workoutId, onBack, onWorkoutCompleted }: WorkoutPa
                       </div>
                       
                       <div className="space-y-3">
-                        {/* Weight Input */}
-                        <div className="flex items-center gap-2">
-                          <label className="text-sm text-muted-foreground min-w-fit">Peso usado:</label>
-                          <input
-                            type="number"
-                            step="0.5"
-                            value={exerciseLog?.weight || ''}
-                            onChange={(e) => updateExerciseLog(exercise.id, exercise.name, { weight: e.target.value })}
-                            placeholder="60"
-                            className="bg-input border border-border rounded px-2 py-1 text-sm w-20 mobile-tap-target"
-                            disabled={isCompleted}
-                          />
-                          <span className="text-sm text-muted-foreground">kg</span>
-                        </div>
-                        
-                        {/* RPE Input */}
-                        <div className="flex items-center gap-2">
-                          <label className="text-sm text-muted-foreground min-w-fit">Nível de esforço (RPE):</label>
-                          <select
-                            value={exerciseLog?.rpe || ''}
-                            onChange={(e) => updateExerciseLog(exercise.id, exercise.name, { rpe: parseInt(e.target.value) })}
-                            className="bg-input border border-border rounded px-2 py-1 text-sm mobile-tap-target"
-                            disabled={isCompleted}
-                          >
-                            <option value="">Selecione</option>
-                            {[6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map(rpe => (
-                              <option key={rpe} value={rpe}>RPE {rpe}</option>
-                            ))}
-                          </select>
+                        {/* Weight and RPE Inputs - Horizontally Aligned */}
+                        <div className="flex gap-4 items-center">
+                          <div className="flex items-center gap-2 flex-1">
+                            <label className="text-sm text-muted-foreground min-w-fit">Peso:</label>
+                            <input
+                              type="number"
+                              step="0.5"
+                              value={exerciseLog?.weight || ''}
+                              onChange={(e) => updateExerciseLog(exercise.id, exercise.name, { weight: e.target.value })}
+                              placeholder="60"
+                              className="bg-input border border-border rounded px-2 py-1 text-sm w-20 mobile-tap-target"
+                              disabled={isCompleted}
+                            />
+                            <span className="text-sm text-muted-foreground">kg</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 flex-1">
+                            <label className="text-sm text-muted-foreground min-w-fit">RPE:</label>
+                            <select
+                              value={exerciseLog?.rpe || ''}
+                              onChange={(e) => updateExerciseLog(exercise.id, exercise.name, { rpe: parseInt(e.target.value) })}
+                              className="bg-input border border-border rounded px-2 py-1 text-sm mobile-tap-target flex-1"
+                              disabled={isCompleted}
+                            >
+                              <option value="">Selecione</option>
+                              {[6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map(rpe => (
+                                <option key={rpe} value={rpe}>RPE {rpe}</option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
                         
                         {/* Save/Complete Button */}
