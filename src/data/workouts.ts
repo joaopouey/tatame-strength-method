@@ -1,3 +1,4 @@
+
 export interface Exercise {
   id: number;
   name: string;
@@ -250,4 +251,21 @@ export const workouts = [
 
 export const getWorkoutById = (id: string) => {
   return workouts.find((workout) => workout.id === id);
+};
+
+export const getWorkoutsByFrequency = (week: number, frequency: 2 | 3 | 4) => {
+  // Filter workouts by week
+  const weekWorkouts = workouts.filter(workout => workout.week === week);
+  
+  // Return workouts based on frequency
+  if (frequency === 2) {
+    // For 2x per week: return first 2 workouts of the week
+    return weekWorkouts.slice(0, 2);
+  } else if (frequency === 3) {
+    // For 3x per week: return first 3 workouts of the week
+    return weekWorkouts.slice(0, 3);
+  } else {
+    // For 4x per week: return all workouts of the week
+    return weekWorkouts;
+  }
 };
