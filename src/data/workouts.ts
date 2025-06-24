@@ -2,269 +2,324 @@ export interface Exercise {
   id: number;
   name: string;
   sets: string;
-  note?: string;
   rpeGuidance: string;
-  bjjBenefit?: string;
+  bjjBenefit: string;
+  note?: string;
 }
 
 export interface Workout {
   id: string;
   title: string;
   subtitle: string;
+  type: 'strength' | 'mobility';
   week: number;
   dayNumber: number;
-  type: string;
   exercises: Exercise[];
 }
 
-export const workouts = [
+export const workouts: Workout[] = [
   {
-    id: "week1-day1",
-    title: "Dia 1 - Base de Força",
-    subtitle: "Semana 1 • Força",
+    id: 'strength-week1-day1',
+    title: 'Treino de Força',
+    subtitle: 'Semana 1 - Dia 1',
+    type: 'strength',
     week: 1,
     dayNumber: 1,
-    type: "força",
     exercises: [
       {
         id: 1,
-        name: "Agachamento Livre",
-        sets: "4 séries de 8-10 repetições",
-        rpeGuidance: "Comece com 70% da carga máxima, ajuste para RPE 7-8",
-        bjjBenefit: "Fortalece pernas e core, essencial para base defensiva, takedowns e movimentos de guarda."
+        name: 'Supino Reto com Barra',
+        sets: '3 séries de 6-8 reps',
+        rpeGuidance: 'Ajuste a carga para RPE 7-8 na última repetição de cada série.',
+        bjjBenefit: 'Fortalece os músculos do peito, ombros e tríceps, essenciais para empurrar e controlar o oponente no jiu-jitsu.',
+        note: 'Mantenha a postura correta e controle a descida da barra.'
       },
       {
         id: 2,
-        name: "Supino Reto",
-        sets: "4 séries de 8-10 repetições",
-        rpeGuidance: "Use 70-75% da carga máxima, mantenha RPE 7-8",
-        bjjBenefit: "Desenvolve força de empurrada, importante para escapar de montadas e controlar oponentes."
+        name: 'Remada Curvada com Barra',
+        sets: '3 séries de 6-8 reps',
+        rpeGuidance: 'Ajuste a carga para RPE 7-8 na última repetição de cada série.',
+        bjjBenefit: 'Fortalece os músculos das costas e bíceps, importantes para puxar e manter a postura durante a luta.',
+        note: 'Mantenha a coluna reta e puxe a barra em direção ao abdômen.'
       },
       {
         id: 3,
-        name: "Puxada Alta",
-        sets: "3 séries de 10-12 repetições",
-        rpeGuidance: "Ajuste para RPE 7, foque na técnica",
-        bjjBenefit: "Fortalece músculos das costas, crucial para grips, puxadas e controle de posição."
+        name: 'Agachamento Livre',
+        sets: '3 séries de 8-10 reps',
+        rpeGuidance: 'Ajuste a carga para RPE 7-8 na última repetição de cada série.',
+        bjjBenefit: 'Fortalece as pernas e o core, proporcionando base sólida e potência para movimentos de projeção e defesa de quedas.',
+        note: 'Mantenha a postura correta e desça até a linha dos joelhos.'
       },
       {
         id: 4,
-        name: "Desenvolvimento",
-        sets: "3 séries de 10-12 repetições",
-        rpeGuidance: "Use carga moderada, RPE 6-7",
-        bjjBenefit: "Fortalece ombros para frames, underhooks e movimentos de braço em geral."
+        name: 'Desenvolvimento Militar com Barra',
+        sets: '3 séries de 6-8 reps',
+        rpeGuidance: 'Ajuste a carga para RPE 7-8 na última repetição de cada série.',
+        bjjBenefit: 'Fortalece os ombros e o core, melhorando a estabilidade e a força para controlar o oponente em posições de domínio.',
+        note: 'Mantenha a postura correta e controle a descida da barra.'
+      },
+      {
+        id: 5,
+        name: 'Barra Fixa',
+        sets: '3 séries até a falha',
+        rpeGuidance: 'Tente alcançar o máximo de repetições possíveis em cada série.',
+        bjjBenefit: 'Fortalece os músculos das costas, ombros e bíceps, essenciais para puxar e controlar o oponente, além de melhorar a força de pegada.',
+        note: 'Se necessário, utilize uma assistência para realizar o movimento completo.'
       }
     ]
   },
   {
-    id: "week1-day2",
-    title: "Dia 2 - Resistência",
-    subtitle: "Semana 1 • Resistência",
+    id: 'strength-week1-day2',
+    title: 'Treino de Força',
+    subtitle: 'Semana 1 - Dia 2',
+    type: 'strength',
     week: 1,
     dayNumber: 2,
-    type: "resistência",
     exercises: [
       {
-        id: 5,
-        name: "Leg Press",
-        sets: "3 séries de 15-20 repetições",
-        rpeGuidance: "Carga moderada, RPE 6-7, foque na resistência",
-        bjjBenefit: "Desenvolve resistência das pernas para guardas longas e movimentos repetitivos."
-      },
-      {
         id: 6,
-        name: "Remada Curvada",
-        sets: "3 séries de 12-15 repetições",
-        rpeGuidance: "RPE 6-7, mantenha boa postura",
-        bjjBenefit: "Fortalece posteriores e melhora postura, essencial para controle de grips e puxadas."
+        name: 'Levantamento Terra',
+        sets: '1 série de 5 reps, 1 série de 3 reps, 1 série de 1 rep',
+        rpeGuidance: 'Ajuste a carga para RPE 7 na série de 5, RPE 8 na série de 3 e RPE 9 na série de 1.',
+        bjjBenefit: 'Fortalece todo o corpo, melhorando a força e a potência para movimentos de projeção, raspagem e finalização.',
+        note: 'Mantenha a postura correta e utilize a técnica adequada para evitar lesões.'
       },
       {
         id: 7,
-        name: "Rosca Direta",
-        sets: "3 séries de 12-15 repetições",
-        rpeGuidance: "Carga leve a moderada, RPE 6",
-        bjjBenefit: "Fortalece bíceps para grips mais duradouros e movimentos de puxada."
+        name: 'Supino Inclinado com Halteres',
+        sets: '3 séries de 8-10 reps',
+        rpeGuidance: 'Ajuste a carga para RPE 7-8 na última repetição de cada série.',
+        bjjBenefit: 'Fortalece os músculos do peito, ombros e tríceps, importantes para empurrar e controlar o oponente em posições de domínio.',
+        note: 'Mantenha a postura correta e controle a descida dos halteres.'
       },
       {
         id: 8,
-        name: "Tríceps Testa",
-        sets: "3 séries de 12-15 repetições",
-        rpeGuidance: "Foque na técnica, RPE 6-7",
-        bjjBenefit: "Desenvolve tríceps para frames, empurrões e extensão de braços."
-      }
-    ]
-  },
-  {
-    id: "week2-day1",
-    title: "Dia 1 - Força Avançada",
-    subtitle: "Semana 2 • Força",
-    week: 2,
-    dayNumber: 1,
-    type: "força",
-    exercises: [
+        name: 'Remada Serrote com Haltere',
+        sets: '3 séries de 8-10 reps',
+        rpeGuidance: 'Ajuste a carga para RPE 7-8 na última repetição de cada série.',
+        bjjBenefit: 'Fortalece os músculos das costas e bíceps, importantes para puxar e manter a postura durante a luta.',
+        note: 'Mantenha a coluna reta e puxe o haltere em direção ao abdômen.'
+      },
       {
         id: 9,
-        name: "Agachamento Frontal",
-        sets: "4 séries de 6-8 repetições",
-        rpeGuidance: "Use 75-80% da carga máxima, RPE 8",
-        bjjBenefit: "Aumenta a força do core e das pernas, melhorando a estabilidade em posições de luta."
+        name: 'Agachamento Frontal com Barra',
+        sets: '3 séries de 8-10 reps',
+        rpeGuidance: 'Ajuste a carga para RPE 7-8 na última repetição de cada série.',
+        bjjBenefit: 'Fortalece as pernas e o core, proporcionando base sólida e potência para movimentos de projeção e defesa de quedas.',
+        note: 'Mantenha a postura correta e desça até a linha dos joelhos.'
       },
       {
         id: 10,
-        name: "Supino Inclinado",
-        sets: "4 séries de 6-8 repetições",
-        rpeGuidance: "75-80% da carga máxima, RPE 8",
-        bjjBenefit: "Focaliza a parte superior do peitoral, útil para empurrar e criar espaço em lutas de solo."
-      },
+        name: 'Desenvolvimento com Halteres',
+        sets: '3 séries de 8-10 reps',
+        rpeGuidance: 'Ajuste a carga para RPE 7-8 na última repetição de cada série.',
+        bjjBenefit: 'Fortalece os ombros e o core, melhorando a estabilidade e a força para controlar o oponente em posições de domínio.',
+        note: 'Mantenha a postura correta e controle a descida dos halteres.'
+      }
+    ]
+  },
+  {
+    id: 'strength-week1-day3',
+    title: 'Treino de Força',
+    subtitle: 'Semana 1 - Dia 3',
+    type: 'strength',
+    week: 1,
+    dayNumber: 3,
+    exercises: [
       {
         id: 11,
-        name: "Barra Fixa",
-        sets: "3 séries até a falha",
-        rpeGuidance: "Tente o máximo de repetições possíveis, RPE 9",
-        bjjBenefit: "Fortalece costas e bíceps, essencial para puxar o oponente e manter o controle."
+        name: 'Paralelas',
+        sets: '3 séries até a falha',
+        rpeGuidance: 'Tente alcançar o máximo de repetições possíveis em cada série.',
+        bjjBenefit: 'Fortalece os músculos do peito, ombros e tríceps, essenciais para empurrar e controlar o oponente no jiu-jitsu.',
+        note: 'Se necessário, utilize uma assistência para realizar o movimento completo.'
       },
       {
         id: 12,
-        name: "Desenvolvimento Militar",
-        sets: "3 séries de 8-10 repetições",
-        rpeGuidance: "Use carga desafiadora, RPE 7-8",
-        bjjBenefit: "Aumenta a força dos ombros para controlar a postura do oponente e defender quedas."
-      }
-    ]
-  },
-  {
-    id: "week2-day2",
-    title: "Dia 2 - Resistência Muscular",
-    subtitle: "Semana 2 • Resistência",
-    week: 2,
-    dayNumber: 2,
-    type: "resistência",
-    exercises: [
+        name: 'Remada Alta com Barra',
+        sets: '3 séries de 8-10 reps',
+        rpeGuidance: 'Ajuste a carga para RPE 7-8 na última repetição de cada série.',
+        bjjBenefit: 'Fortalece os músculos das costas e ombros, importantes para puxar e manter a postura durante a luta.',
+        note: 'Mantenha a coluna reta e puxe a barra em direção ao queixo.'
+      },
       {
         id: 13,
-        name: "Afundo",
-        sets: "3 séries de 15-20 repetições por perna",
-        rpeGuidance: "Mantenha o equilíbrio, RPE 6-7",
-        bjjBenefit: "Melhora a estabilidade e resistência das pernas, importante para movimentação e base."
+        name: 'Avanço com Halteres',
+        sets: '3 séries de 10-12 reps por perna',
+        rpeGuidance: 'Ajuste a carga para RPE 7-8 na última repetição de cada série.',
+        bjjBenefit: 'Fortalece as pernas e o core, proporcionando base sólida e potência para movimentos de projeção e defesa de quedas.',
+        note: 'Mantenha a postura correta e controle o movimento.'
       },
       {
         id: 14,
-        name: "Remada Serrote",
-        sets: "3 séries de 15-20 repetições por braço",
-        rpeGuidance: "Concentre-se na forma, RPE 6-7",
-        bjjBenefit: "Fortalece os músculos das costas individualmente, melhorando o equilíbrio e a força de puxada."
+        name: 'Elevação Lateral com Halteres',
+        sets: '3 séries de 10-12 reps',
+        rpeGuidance: 'Ajuste a carga para RPE 7-8 na última repetição de cada série.',
+        bjjBenefit: 'Fortalece os ombros, melhorando a estabilidade e a força para controlar o oponente em posições de domínio.',
+        note: 'Mantenha a postura correta e controle a descida dos halteres.'
       },
       {
         id: 15,
-        name: "Rosca Alternada",
-        sets: "3 séries de 15-20 repetições por braço",
-        rpeGuidance: "Use carga leve, RPE 5-6",
-        bjjBenefit: "Aumenta a resistência dos bíceps para manter os grips por mais tempo."
-      },
-      {
-        id: 16,
-        name: "Tríceps Francês",
-        sets: "3 séries de 15-20 repetições",
-        rpeGuidance: "Controle o movimento, RPE 6-7",
-        bjjBenefit: "Fortalece os tríceps para empurrar e criar espaço, útil para escapar de posições desfavoráveis."
+        name: 'Rosca Direta com Barra',
+        sets: '3 séries de 8-10 reps',
+        rpeGuidance: 'Ajuste a carga para RPE 7-8 na última repetição de cada série.',
+        bjjBenefit: 'Fortalece os bíceps, importantes para puxar e controlar o oponente, além de melhorar a força de pegada.',
+        note: 'Mantenha a postura correta e controle o movimento.'
       }
     ]
   },
   {
-    id: "week3-day1",
-    title: "Dia 1 - Potência",
-    subtitle: "Semana 3 • Potência",
-    week: 3,
+    id: 'mobility-week1-day1',
+    title: 'Treino de Mobilidade',
+    subtitle: 'Semana 1 - Dia 1',
+    type: 'mobility',
+    week: 1,
     dayNumber: 1,
-    type: "potência",
     exercises: [
       {
+        id: 16,
+        name: 'Alongamento de Peito na Porta',
+        sets: '3 séries de 30 segundos',
+        rpeGuidance: 'Mantenha um alongamento leve a moderado, sem sentir dor.',
+        bjjBenefit: 'Melhora a mobilidade do peito e ombros, facilitando a movimentação e a defesa em posições de pressão.',
+        note: 'Mantenha a postura correta e respire fundo durante o alongamento.'
+      },
+      {
         id: 17,
-        name: "Salto na Caixa",
-        sets: "3 séries de 5-8 repetições",
-        rpeGuidance: "Foco na explosão, RPE 8",
-        bjjBenefit: "Desenvolve a potência das pernas para takedowns rápidos e escapes explosivos."
+        name: 'Alongamento de Costas com Rotação',
+        sets: '3 séries de 30 segundos por lado',
+        rpeGuidance: 'Mantenha um alongamento leve a moderado, sem sentir dor.',
+        bjjBenefit: 'Melhora a mobilidade da coluna vertebral, facilitando a movimentação e a defesa em posições de pressão.',
+        note: 'Mantenha a postura correta e respire fundo durante o alongamento.'
       },
       {
         id: 18,
-        name: "Arremesso de Medicine Ball",
-        sets: "3 séries de 8-10 repetições",
-        rpeGuidance: "Use força máxima, RPE 8",
-        bjjBenefit: "Melhora a potência do core e a capacidade de gerar força em movimentos de arremesso."
+        name: 'Alongamento de Quadril com Rotação',
+        sets: '3 séries de 30 segundos por lado',
+        rpeGuidance: 'Mantenha um alongamento leve a moderado, sem sentir dor.',
+        bjjBenefit: 'Melhora a mobilidade do quadril, facilitando a movimentação e a defesa em posições de pressão.',
+        note: 'Mantenha a postura correta e respire fundo durante o alongamento.'
       },
       {
         id: 19,
-        name: "Remada Explosiva",
-        sets: "3 séries de 8-10 repetições",
-        rpeGuidance: "Puxe com força, RPE 7-8",
-        bjjBenefit: "Aumenta a potência dos músculos das costas para puxar o oponente e controlar a luta."
+        name: 'Alongamento de Isquiotibiais Sentado',
+        sets: '3 séries de 30 segundos',
+        rpeGuidance: 'Mantenha um alongamento leve a moderado, sem sentir dor.',
+        bjjBenefit: 'Melhora a flexibilidade dos isquiotibiais, facilitando a movimentação e a defesa em posições de pressão.',
+        note: 'Mantenha a postura correta e respire fundo durante o alongamento.'
       },
       {
         id: 20,
-        name: "Desenvolvimento com Salto",
-        sets: "3 séries de 5-8 repetições",
-        rpeGuidance: "Coordene o movimento, RPE 7-8",
-        bjjBenefit: "Desenvolve a potência dos ombros e a coordenação para defender quedas e controlar a postura."
+        name: 'Alongamento de Panturrilha em Pé',
+        sets: '3 séries de 30 segundos por perna',
+        rpeGuidance: 'Mantenha um alongamento leve a moderado, sem sentir dor.',
+        bjjBenefit: 'Melhora a flexibilidade da panturrilha, facilitando a movimentação e a defesa em posições de pressão.',
+        note: 'Mantenha a postura correta e respire fundo durante o alongamento.'
       }
     ]
   },
   {
-    id: "week3-day2",
-    title: "Dia 2 - Mobilidade e Flexibilidade",
-    subtitle: "Semana 3 • Recuperação Ativa",
-    week: 3,
+    id: 'mobility-week1-day2',
+    title: 'Treino de Mobilidade',
+    subtitle: 'Semana 1 - Dia 2',
+    type: 'mobility',
+    week: 1,
     dayNumber: 2,
-    type: "recuperação",
     exercises: [
       {
         id: 21,
-        name: "Alongamento de Isquiotibiais",
-        sets: "3 séries de 30 segundos por perna",
-        rpeGuidance: "Alongue até sentir, RPE 3",
-        bjjBenefit: "Aumenta a flexibilidade dos isquiotibiais, melhorando a capacidade de movimentação e evitando lesões."
+        name: 'Rotação de Ombros com Bastão',
+        sets: '3 séries de 10 repetições',
+        rpeGuidance: 'Mantenha um movimento suave e controlado, sem sentir dor.',
+        bjjBenefit: 'Melhora a mobilidade dos ombros, facilitando a movimentação e a defesa em posições de pressão.',
+        note: 'Mantenha a postura correta e respire fundo durante o movimento.'
       },
       {
         id: 22,
-        name: "Rotação de Tronco",
-        sets: "3 séries de 10 repetições para cada lado",
-        rpeGuidance: "Gire suavemente, RPE 2-3",
-        bjjBenefit: "Melhora a mobilidade do tronco, facilitando a rotação e a defesa em posições de luta."
+        name: 'Rotação de Tronco Sentado',
+        sets: '3 séries de 10 repetições por lado',
+        rpeGuidance: 'Mantenha um movimento suave e controlado, sem sentir dor.',
+        bjjBenefit: 'Melhora a mobilidade da coluna vertebral, facilitando a movimentação e a defesa em posições de pressão.',
+        note: 'Mantenha a postura correta e respire fundo durante o movimento.'
       },
       {
         id: 23,
-        name: "Alongamento de Ombros",
-        sets: "3 séries de 30 segundos por braço",
-        rpeGuidance: "Alongue até sentir, RPE 3",
-        bjjBenefit: "Aumenta a flexibilidade dos ombros, melhorando a capacidade de defender quedas e controlar a postura."
+        name: 'Rotação de Quadril em Pé',
+        sets: '3 séries de 10 repetições por lado',
+        rpeGuidance: 'Mantenha um movimento suave e controlado, sem sentir dor.',
+        bjjBenefit: 'Melhora a mobilidade do quadril, facilitando a movimentação e a defesa em posições de pressão.',
+        note: 'Mantenha a postura correta e respire fundo durante o movimento.'
       },
       {
         id: 24,
-        name: "Mobilidade de Quadril",
-        sets: "3 séries de 10 repetições para cada lado",
-        rpeGuidance: "Mova-se suavemente, RPE 2-3",
-        bjjBenefit: "Melhora a mobilidade do quadril, facilitando a movimentação e a defesa em posições de guarda."
+        name: 'Flexão Lateral do Tronco em Pé',
+        sets: '3 séries de 10 repetições por lado',
+        rpeGuidance: 'Mantenha um movimento suave e controlado, sem sentir dor.',
+        bjjBenefit: 'Melhora a flexibilidade lateral do tronco, facilitando a movimentação e a defesa em posições de pressão.',
+        note: 'Mantenha a postura correta e respire fundo durante o movimento.'
+      },
+      {
+        id: 25,
+        name: 'Círculos com o Tornozelo',
+        sets: '3 séries de 10 repetições por lado',
+        rpeGuidance: 'Mantenha um movimento suave e controlado, sem sentir dor.',
+        bjjBenefit: 'Melhora a mobilidade do tornozelo, facilitando a movimentação e a defesa em posições de pressão.',
+        note: 'Mantenha a postura correta e respire fundo durante o movimento.'
       }
     ]
-  }
+  },
+  {
+    id: 'mobility-week1-day3',
+    title: 'Treino de Mobilidade',
+    subtitle: 'Semana 1 - Dia 3',
+    type: 'mobility',
+    week: 1,
+    dayNumber: 3,
+    exercises: [
+      {
+        id: 26,
+        name: 'Mobilização de Punho',
+        sets: '3 séries de 10 repetições em cada direção',
+        rpeGuidance: 'Mantenha um movimento suave e controlado, sem sentir dor.',
+        bjjBenefit: 'Melhora a mobilidade dos punhos, importante para a pegada e defesa em diversas posições.',
+        note: 'Realize movimentos de flexão, extensão, pronação, supinação e círculos.'
+      },
+      {
+        id: 27,
+        name: 'Alongamento Dinâmico de Perna',
+        sets: '3 séries de 10 repetições em cada perna',
+        rpeGuidance: 'Mantenha um movimento suave e controlado, sem sentir dor.',
+        bjjBenefit: 'Prepara a musculatura para o exercício, aumentando a flexibilidade e amplitude de movimento.',
+        note: 'Realize movimentos de balanço para frente, para trás e lateralmente.'
+      },
+      {
+        id: 28,
+        name: 'Gato-Camelo',
+        sets: '3 séries de 10 repetições',
+        rpeGuidance: 'Mantenha um movimento suave e controlado, sem sentir dor.',
+        bjjBenefit: 'Aumenta a mobilidade da coluna vertebral, importante para a postura e prevenção de lesões.',
+        note: 'Alterne entre as posições de flexão e extensão da coluna.'
+      },
+      {
+        id: 29,
+        name: 'Mobilidade de Tornozelo com Joelho na Parede',
+        sets: '3 séries de 10 repetições em cada perna',
+        rpeGuidance: 'Mantenha um movimento suave e controlado, sem sentir dor.',
+        bjjBenefit: 'Melhora a mobilidade do tornozelo, importante para a movimentação e equilíbrio.',
+        note: 'Aproxime o joelho da parede sem levantar o calcanhar do chão.'
+      },
+      {
+        id: 30,
+        name: 'Liberação Miofascial com Rolo (Panturrilha)',
+        sets: '3 séries de 30 segundos em cada perna',
+        rpeGuidance: 'Aplique uma pressão moderada e role lentamente sobre a musculatura.',
+        bjjBenefit: 'Ajuda a relaxar a musculatura e melhorar a circulação, auxiliando na recuperação e prevenção de lesões.',
+        note: 'Role o rolo sobre a panturrilha, buscando pontos de tensão.'
+      }
+    ]
+  },
 ];
 
-export const getWorkoutById = (id: string) => {
-  return workouts.find((workout) => workout.id === id);
-};
-
-export const getWorkoutsByFrequency = (week: number, frequency: 2 | 3 | 4) => {
-  // Filter workouts by week
-  const weekWorkouts = workouts.filter(workout => workout.week === week);
-  
-  // Return workouts based on frequency
-  if (frequency === 2) {
-    // For 2x per week: return first 2 workouts of the week
-    return weekWorkouts.slice(0, 2);
-  } else if (frequency === 3) {
-    // For 3x per week: return first 3 workouts of the week
-    return weekWorkouts.slice(0, 3);
-  } else {
-    // For 4x per week: return all workouts of the week
-    return weekWorkouts;
-  }
+export const getWorkoutById = (id: string): Workout | undefined => {
+  return workouts.find(workout => workout.id === id);
 };

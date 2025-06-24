@@ -42,11 +42,17 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+  }
+
+  html {
+    overflow-x: hidden;
   }
 }
 
@@ -57,14 +63,43 @@
   }
   
   .exercise-card {
-    @apply bg-card border border-border rounded-lg p-4 mb-3;
+    @apply bg-card border border-border rounded-lg p-3 sm:p-4 mb-3 w-full;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
   
   .primary-button {
-    @apply bg-primary text-primary-foreground font-semibold py-4 px-6 rounded-lg mobile-tap-target transition-all duration-200 hover:bg-primary/90 active:scale-95;
+    @apply bg-primary text-primary-foreground font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg mobile-tap-target transition-all duration-200 hover:bg-primary/90 active:scale-95 w-full text-sm;
   }
   
   .secondary-button {
-    @apply bg-secondary text-secondary-foreground font-medium py-3 px-5 rounded-lg mobile-tap-target border border-border transition-all duration-200 hover:bg-secondary/80 active:scale-95;
+    @apply bg-secondary text-secondary-foreground font-medium py-2 sm:py-3 px-3 sm:px-5 rounded-lg mobile-tap-target border border-border transition-all duration-200 hover:bg-secondary/80 active:scale-95 w-full text-sm;
+  }
+
+  /* Prevent text overflow and ensure proper spacing */
+  .break-words {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Mobile-specific optimizations */
+  @screen max-sm {
+    .container {
+      @apply px-4;
+    }
+  }
+}
+
+/* Prevent horizontal scroll on mobile */
+@media (max-width: 640px) {
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better touch targets for mobile */
+  input, select, button {
+    font-size: 16px; /* Prevent zoom on iOS */
   }
 }
