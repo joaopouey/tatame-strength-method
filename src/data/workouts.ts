@@ -1,3 +1,4 @@
+
 export interface Exercise {
   id: number;
   name: string;
@@ -322,4 +323,30 @@ export const workouts: Workout[] = [
 
 export const getWorkoutById = (id: string): Workout | undefined => {
   return workouts.find(workout => workout.id === id);
+};
+
+export const getWorkoutsByFrequency = (week: number, frequency: 2 | 3 | 4): Workout[] => {
+  // Filter workouts by week
+  const weekWorkouts = workouts.filter(workout => workout.week === week);
+  
+  // Based on frequency, return appropriate workouts
+  if (frequency === 2) {
+    // For 2x per week: 1 strength + 1 mobility
+    return [
+      weekWorkouts.find(w => w.type === 'strength') || weekWorkouts[0],
+      weekWorkouts.find(w => w.type === 'mobility') || weekWorkouts[1]
+    ].filter(Boolean);
+  } else if (frequency === 3) {
+    // For 3x per week: 2 strength + 1 mobility
+    const strengthWorkouts = weekWorkouts.filter(w => w.type === 'strength').slice(0, 2);
+    const mobilityWorkouts = weekWorkouts.filter(w => w.type === 'mobility').slice(0, 1);
+    return [...strengthWorkouts, ...mobilityWorkouts];
+  } else if (frequency === 4) {
+    // For 4x per week: 3 strength + 1 mobility
+    const strengthWorkouts = weekWorkouts.filter(w => w.type === 'strength');
+    const mobilityWorkouts = weekWorkouts.filter(w => w.type === 'mobility').slice(0, 1);
+    return [...strengthWorkouts, ...mobilityWorkouts];
+  }
+  
+  return weekWorkouts;
 };
