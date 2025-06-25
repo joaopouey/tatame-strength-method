@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { LandingPage } from "@/components/LandingPage";
 import { Dashboard } from "@/components/Dashboard";
@@ -107,7 +106,7 @@ const Index = () => {
       return <Dashboard />;
     
     default:
-      return <LandingPage onSignIn={handleSignIn} />;
+      return <LandingPage onSignIn={handleSignIn} onViewPlans={handleGoToSignUp} />;
   }
 };
 

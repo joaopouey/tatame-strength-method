@@ -1,22 +1,27 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Zap, Shield, Target, User } from "lucide-react";
 
 interface LandingPageProps {
   onSignIn: () => void;
+  onViewPlans: () => void;
 }
 
-export const LandingPage = ({ onSignIn }: LandingPageProps) => {
+export const LandingPage = ({ onSignIn, onViewPlans }: LandingPageProps) => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="p-4 border-b border-border">
         <div className="max-w-md mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold text-primary">ForçaJJ</h1>
-          <Button variant="ghost" size="sm" onClick={onSignIn}>
-            Entrar
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onViewPlans}>
+              Ver planos
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onSignIn}>
+              Entrar
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -117,7 +122,7 @@ export const LandingPage = ({ onSignIn }: LandingPageProps) => {
                   <span>Suporte direto com especialistas</span>
                 </li>
               </ul>
-              <Button onClick={onSignIn} className="primary-button w-full">
+              <Button onClick={onViewPlans} className="primary-button w-full">
                 Assinar Agora
               </Button>
             </CardContent>
