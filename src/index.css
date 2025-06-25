@@ -82,17 +82,14 @@
     overflow-wrap: break-word;
     hyphens: auto;
   }
-
-  /* Mobile-specific optimizations */
-  @screen max-sm {
-    .container {
-      @apply px-4;
-    }
-  }
 }
 
-/* Prevent horizontal scroll on mobile */
+/* Prevent horizontal scroll on mobile - using standard media query instead of @screen max-sm */
 @media (max-width: 640px) {
+  .container {
+    @apply px-4;
+  }
+  
   .table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
