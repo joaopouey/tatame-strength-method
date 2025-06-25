@@ -1,6 +1,6 @@
 
 import jsPDF from 'jspdf';
-import { workoutsData } from '../data/workouts';
+import { workouts } from '../data/workouts';
 
 export const generateWorkoutPDF = () => {
   const doc = new jsPDF();

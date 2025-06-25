@@ -39,9 +39,9 @@ const AdminLogin = () => {
       }
 
       if (data.user) {
-        // Verificar se é um admin
+        // Verificar se é um admin usando query direta
         const { data: adminData, error: adminError } = await supabase
-          .from('admins')
+          .from('admins' as any)
           .select('id')
           .eq('user_id', data.user.id)
           .single();

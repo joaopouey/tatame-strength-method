@@ -65,9 +65,9 @@ const AdminRegister = () => {
           return;
         }
 
-        // Criar registro na tabela admins
+        // Criar registro na tabela admins usando query direta
         const { error: adminError } = await supabase
-          .from('admins')
+          .from('admins' as any)
           .insert([{
             user_id: signInData.session!.user.id,
             name: formData.name,

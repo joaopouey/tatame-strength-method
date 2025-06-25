@@ -31,9 +31,9 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Verificar se é um admin
+      // Verificar se é um admin usando query direta
       const { data: adminData, error } = await supabase
-        .from('admins')
+        .from('admins' as any)
         .select('*')
         .eq('user_id', session.user.id)
         .single();
